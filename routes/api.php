@@ -6,6 +6,7 @@ use App\Http\Controllers\ClassificationController;
 use App\Http\Controllers\DismissalController;
 use App\Http\Controllers\EmployeController;
 use App\Http\Controllers\PositionController;
+use App\Http\Controllers\PromotionController;
 use \App\Http\Controllers\RetirementController;
 use App\Http\Controllers\SanctionController;
 use App\Http\Controllers\TitleController;
@@ -110,6 +111,15 @@ Route::prefix('assignment')->group(function () {
 Route::prefix('unit')->group(function () {
     $controller = UnitController::class;
     $startAbility = 'unit';
+    Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+    Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
+    Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
+    Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+});
+
+Route::prefix('promotion')->group(function () {
+    $controller = PromotionController::class;
+    $startAbility = 'promotion';
     Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
     Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
     Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
