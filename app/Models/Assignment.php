@@ -63,10 +63,15 @@ class Assignment extends Model
     /**
      * Get the relation methods for the model.
      */
-    public $relation_methods = ['career_event'];
+    public $relation_methods = ['career_event', 'position'];
 
     public function career_event()
     {
         return $this->belongsTo(CareerEvent::class, 'id');
+    }
+
+    public function position()
+    {
+        return $this->belongsTo(Position::class);
     }
 }

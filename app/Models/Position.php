@@ -61,10 +61,15 @@ class Position extends Model implements IModel
     /**
      * Get the relation methods for the model.
      */
-    public $relation_methods = ['classification',];
+    public $relation_methods = ['classification','assignment'];
 
     public function classification()
     {
         return $this->belongsTo(Classification::class);
+    }
+
+    public function assignment()
+    {
+        return $this->hasMany(Assignment::class);
     }
 }
