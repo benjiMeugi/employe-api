@@ -10,7 +10,7 @@ class CareerEvent extends Model
     /** @use HasFactory<\Database\Factories\EmployeFactory> */
     use HasFactory;
 
-    public static $EVENT_OPTIONS = ['Assignment','Promotion', 'Sanction', 'Retirement', 'Dismissal'];
+    public static $EVENT_OPTIONS = ['assignment','promotion', 'sanction', 'retirement', 'dismissal'];
 
         /**
      * Fillable column of the related table
@@ -65,11 +65,16 @@ class CareerEvent extends Model
     /**
      * Get the relation methods for the model.
      */
-    public $relation_methods = ['employe'];
+    public $relation_methods = ['employe', 'retirement'];
 
     public function employe()
     {
-        return $this->belongsTo(Title::class);
+        return $this->belongsTo(Employe::class);
+    }
+    
+    public function retirement()
+    {
+        return $this->hasOne(Retirement::class);
     }
 
 }

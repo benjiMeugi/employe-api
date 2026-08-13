@@ -18,7 +18,7 @@ class Repository implements IRepository
     /**
      * @var Model
      */
-    private Model $model;
+    protected Model $model;
 
     /**
      * @param string|null $model
@@ -32,9 +32,11 @@ class Repository implements IRepository
         }
     }
 
+
+
     /**
      * Set new instance of model
-     * 
+     *
      * @param string $model
      */
     public function setModel($model)
@@ -69,21 +71,21 @@ class Repository implements IRepository
 
     /**
      * apply request query filters
-     * 
+     *
      * ordering order=asc/desc by=column
-     * 
-     * where_column 
-     * 
+     *
+     * where_column
+     *
      * whereLike_column / whereLike_relation__column
-     * 
+     *
      * orWhere_column
-     * 
+     *
      * orWhereLike_column
-     * 
+     *
      * with_relation or with_relation1__relation2
-     * 
+     *
      * withCount_relation
-     *  
+     *
      * @param Request $request
      * @return Builder $query
      */
@@ -107,7 +109,7 @@ class Repository implements IRepository
 
     /**
      * Store resource
-     * 
+     *
      * @param Request $request
      */
     public function store($request)
@@ -117,7 +119,7 @@ class Repository implements IRepository
 
     /**
      * Update resource
-     *  
+     *
      * @param Request $request
      * @param int $id
      */
@@ -138,7 +140,7 @@ class Repository implements IRepository
 
 
     /**
-     * 
+     *
      * @param Request $request
      * @param array $rules
      * @return true|array
