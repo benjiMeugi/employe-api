@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\CareerEventController;
 use App\Http\Controllers\ClassificationController;
 use App\Http\Controllers\DismissalController;
@@ -79,7 +80,7 @@ Route::prefix('retirement')->group(function () {
 });
 
 Route::prefix('dismissal')->group(function () {
-    $controller = RetirementController::class;
+    $controller = DismissalController::class;
     $startAbility = 'dismissal';
     Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
     Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
@@ -90,6 +91,15 @@ Route::prefix('dismissal')->group(function () {
 Route::prefix('sanction')->group(function () {
     $controller = SanctionController::class;
     $startAbility = 'sanction';
+    Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+    Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
+    Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
+    Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+});
+
+Route::prefix('assignment')->group(function () {
+    $controller = AssignmentController::class;
+    $startAbility = 'assignment';
     Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
     Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
     Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
