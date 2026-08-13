@@ -6,6 +6,7 @@ use App\Http\Controllers\DismissalController;
 use App\Http\Controllers\EmployeController;
 use App\Http\Controllers\PositionController;
 use \App\Http\Controllers\RetirementController;
+use App\Http\Controllers\SanctionController;
 use App\Http\Controllers\TitleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -14,7 +15,7 @@ function resolveAbility(string $start_ability, string $end_ability)
 {
     // TODO: Juste pour le dev, à supprimer plus tard qd l'auth sera en place
     return null;
-    return $start_ability. '-'. $end_ability;
+    //return $start_ability. '-'. $end_ability;
 }
 
 // TODO: Appliquer l'auth middleware sur toutes les routes
@@ -80,6 +81,15 @@ Route::prefix('retirement')->group(function () {
 Route::prefix('dismissal')->group(function () {
     $controller = RetirementController::class;
     $startAbility = 'dismissal';
+    Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+    Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
+    Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
+    Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+});
+
+Route::prefix('sanction')->group(function () {
+    $controller = SanctionController::class;
+    $startAbility = 'sanction';
     Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
     Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
     Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
