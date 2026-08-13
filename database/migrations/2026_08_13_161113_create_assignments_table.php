@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('assignments', function (Blueprint $table) {
             $table->foreignId()->primary()->constrained('career_events')->cascadeOnDelete();
             $table->foreign('position_id')->references('id')->on('positions');
+            $table->foreign('unit_id')->references('id')->on('units');
             $table->date('start_date');
             $table->date('end_date')->nullable();
             $table->string('reason')->nullable();

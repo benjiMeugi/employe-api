@@ -9,6 +9,7 @@ use App\Http\Controllers\PositionController;
 use \App\Http\Controllers\RetirementController;
 use App\Http\Controllers\SanctionController;
 use App\Http\Controllers\TitleController;
+use App\Http\Controllers\UnitController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -100,6 +101,15 @@ Route::prefix('sanction')->group(function () {
 Route::prefix('assignment')->group(function () {
     $controller = AssignmentController::class;
     $startAbility = 'assignment';
+    Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+    Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
+    Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
+    Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+});
+
+Route::prefix('unit')->group(function () {
+    $controller = UnitController::class;
+    $startAbility = 'unit';
     Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
     Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
     Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));

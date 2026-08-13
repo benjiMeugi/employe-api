@@ -18,7 +18,7 @@ class Assignment extends Model
     protected $fillable = [
         'reason',
         'position_id',
-        //'unit_id',
+        'unit_id',
         'start_date',
         'end_date',
     ];
@@ -39,7 +39,7 @@ class Assignment extends Model
     {
         return [
             'position_id' => ['required', 'exists:' . (new Position)->getTable() . ',id'],
-            //'unit_id' => ['required', 'exists:' . (new Unit)->getTable() . 'id'],
+            'unit_id' => ['required', 'exists:' . (new Unit)->getTable() . 'id'],
             'start_date' => ['required', 'date'],
             'end_date' => ['nullable', 'date'],
             'reason' => ['nullable', 'string'],
@@ -56,14 +56,14 @@ class Assignment extends Model
             'start_date' => ['sometimes', 'date'],
             'end_date' => ['sometimes', 'date'],
             'position_id' => ['sometimes', 'exists:' . (new Position)->getTable() . ',id'],
-            //'unit_id' => ['sometimes', 'exists:' . (new Unit)->getTable() . ',id'],
+            'unit_id' => ['sometimes', 'exists:' . (new Unit)->getTable() . ',id'],
         ];
     }
 
     /**
      * Get the relation methods for the model.
      */
-    public $relation_methods = ['career_event', 'position'];
+    public $relation_methods = ['career_event', 'position', 'unit'];
 
     public function career_event()
     {
@@ -73,5 +73,10 @@ class Assignment extends Model
     public function position()
     {
         return $this->belongsTo(Position::class);
+    }
+
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class);
     }
 }
