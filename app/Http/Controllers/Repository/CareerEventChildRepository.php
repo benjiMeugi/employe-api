@@ -28,7 +28,7 @@ class CareerEventChildRepository extends Repository
             $careerEvent = CareerEvent::create([
                 'employee_id' => $validated['employee_id'],
                 'event_date' => $validated['event_date'],
-                'user_id' => auth()->id(),
+                'user_id' => null,//auth()->id(),
                 'comment' => $validated['comment'] ?? null,
                 'type' => $type,
             ]);

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CareerEventController;
 use App\Http\Controllers\ClassificationController;
+use App\Http\Controllers\DismissalController;
 use App\Http\Controllers\EmployeController;
 use App\Http\Controllers\PositionController;
 use \App\Http\Controllers\RetirementController;
@@ -70,6 +71,15 @@ Route::prefix('career_event')->group(function () {
 Route::prefix('retirement')->group(function () {
     $controller = RetirementController::class;
     $startAbility = 'retirement';
+    Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+    Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
+    Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
+    Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+});
+
+Route::prefix('dismissal')->group(function () {
+    $controller = RetirementController::class;
+    $startAbility = 'dismissal';
     Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
     Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
     Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));

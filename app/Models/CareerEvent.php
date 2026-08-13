@@ -65,16 +65,21 @@ class CareerEvent extends Model
     /**
      * Get the relation methods for the model.
      */
-    public $relation_methods = ['employe', 'retirement'];
+    public $relation_methods = ['employe', 'retirement', 'dismissal'];
 
     public function employe()
     {
         return $this->belongsTo(Employe::class);
     }
-    
+
     public function retirement()
     {
         return $this->hasOne(Retirement::class);
+    }
+
+    public function dismissal()
+    {
+        return $this->hasOne(Dismissal::class);
     }
 
 }
