@@ -12,6 +12,13 @@ class Retirement extends Model implements IModel
     use HasFactory;
 
     /**
+     * Son id vient toujours de career_events, jamais auto-généré ici.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+
+    /**
      * Fillable column of the related table
      *
      * @var array

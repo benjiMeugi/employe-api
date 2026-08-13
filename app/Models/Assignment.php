@@ -2,13 +2,21 @@
 
 namespace App\Models;
 
+use BenjiMeugi\Contracts\IModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Assignment extends Model
+class Assignment extends Model implements Imodel
 {
     /** @use HasFactory<\Database\Factories\TitleFactory> */
     use HasFactory;
+
+    /**
+     * Son id vient toujours de career_events, jamais auto-généré ici.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
 
     /**
      * Fillable column of the related table
