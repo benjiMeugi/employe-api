@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('assignments', function (Blueprint $table) {
-            $table->foreignId()->primary()->constrained('career_events')->cascadeOnDelete();
-            $table->foreign('position_id')->references('id')->on('positions');
-            $table->foreign('unit_id')->references('id')->on('units');
+            $table->foreignId('id')->primary()->constrained('career_events')->cascadeOnDelete();
+            $table->foreignId('position_id')->constrained('positions')->restrictOnDelete();
+            $table->foreignId('unit_id')->constrained('units')->restrictOnDelete();
             $table->date('start_date');
             $table->date('end_date')->nullable();
             $table->string('reason')->nullable();

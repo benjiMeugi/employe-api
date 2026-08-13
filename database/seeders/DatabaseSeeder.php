@@ -27,6 +27,8 @@ class DatabaseSeeder extends Seeder
             TitleSeeder::class,
             ClassificationSeeder::class,
             PositionSeeder::class,
+            UnitSeeder::class,
+            CareerEventSeeder::class,
         ]);
 
         Employe::factory()->count(100)->create();
