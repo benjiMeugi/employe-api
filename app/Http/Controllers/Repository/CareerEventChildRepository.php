@@ -23,14 +23,14 @@ class CareerEventChildRepository extends Repository
 
             // Déduit automatiquement le type depuis le nom de la classe du modèle
             // (Retirement -> 'retirement', Assignment -> 'assignment'...)
-            $type = Str::snake(class_basename($this->model));
+            $event = Str::snake(class_basename($this->model));
 
             $careerEvent = CareerEvent::create([
-                'employee_id' => $validated['employee_id'],
+                'employe_id' => $validated['employe_id'],
                 'event_date' => $validated['event_date'],
                 'user_id' => null,//auth()->id(),
                 'comment' => $validated['comment'] ?? null,
-                'type' => $type,
+                'event' => $event,
             ]);
 
             $childClass = get_class($this->model);

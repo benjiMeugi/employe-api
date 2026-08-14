@@ -110,6 +110,6 @@ class Employe extends Model
 
     public function career_event()
     {
-        return $this->hasMany(CareerEvent::class);
+        return $this->hasMany(CareerEvent::class, 'employe_id');
     }
 }

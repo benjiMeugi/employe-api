@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('dismissals', function (Blueprint $table) {
             $table->foreignId('id')->primary()->constrained('career_events')->cascadeOnDelete();
             $table->string('reason');
-            $table->date('deffective_date');
+            $table->date('effective_date');
             $table->double('severance_pay')->nullable();
             $table->bigInteger('notice_days')->nullable();
             $table->timestamps();

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('employe_id')->constrained('employes')->cascadeOnDelete();
             $table->date('event_date');
             $table->enum('event', CareerEvent::$EVENT_OPTIONS);
-            $table->foreignId('user_id')->nullable()->constrained('employes')->nullOnDelete();
+            $table->bigInteger('user_id')->nullable();
             $table->string('comment')->nullable();
             $table->timestamps();
         });

@@ -61,7 +61,7 @@ class Unit extends Model implements IModel
     /**
      * Get the relation methods for the model.
      */
-    public $relation_methods = ['parent_level', 'children'];
+    public $relation_methods = ['parent_level', 'children', 'assignment'];
 
     public function parent_level()
     {
