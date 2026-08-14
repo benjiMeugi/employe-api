@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Repository\CareerEventChildRepository;
+use App\Http\Controllers\Repository\Repository;
 use App\Models\Promotion;
 use Illuminate\Http\Request;
 
@@ -14,14 +14,14 @@ class PromotionController extends Controller
     private Promotion $model;
 
     /**
-     * @var CareerEventChildRepository
+     * @var Repository
      */
-    private CareerEventChildRepository $repository;
+    private Repository $repository;
 
     public function __construct()
     {
         $this->model = new Promotion();
-        $this->repository = new CareerEventChildRepository($this->model);
+        $this->repository = new Repository($this->model);
     }
 
     /**

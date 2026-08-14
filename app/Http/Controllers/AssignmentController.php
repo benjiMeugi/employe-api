@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Repository\CareerEventChildRepository;
+use App\Http\Controllers\Repository\Repository;
 use App\Models\Assignment;
 use Illuminate\Http\Request;
 
@@ -14,14 +14,14 @@ class AssignmentController extends Controller
     private Assignment $model;
 
     /**
-     * @var CareerEventChildRepository
+     * @var Repository
      */
-    private CareerEventChildRepository $repository;
+    private Repository $repository;
 
     public function __construct()
     {
         $this->model = new Assignment();
-        $this->repository = new CareerEventChildRepository($this->model);
+        $this->repository = new Repository($this->model);
     }
 
     /**

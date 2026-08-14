@@ -2,27 +2,25 @@
 
 namespace App\Models;
 
-use BenjiMeugi\Contracts\IModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class CareerEvent extends Model implements Imodel
+class CareerEvent extends Model
 {
-    /** @use HasFactory<\Database\Factories\EmployeFactory> */
+    /** @use HasFactory<\Database\Factories\CareerEventFactory> */
     use HasFactory;
 
-    public static $EVENT_OPTIONS = ['assignment','promotion', 'sanction', 'retirement', 'dismissal'];
+    public static $EVENT_OPTIONS = ['assignment', 'promotion', 'sanction', 'retirement', 'dismissal'];
 
-        /**
+    /**
      * Fillable column of the related table
      *
      * @var array
      */
     protected $fillable = [
-        'employe_id',
+        'employee_id',
         'event_date',
         'user_id',
-        'comment',
         'event',
     ];
 
@@ -34,18 +32,15 @@ class CareerEvent extends Model implements Imodel
         return $this->getForeignKey();
     }
 
-
     /**
      * Get the validation rules for the model.
      */
     public function rules()
     {
         return [
-            'event' => ['required', 'in:' . implode(',', self::$EVENT_OPTIONS)],
-            'event_date' => ['required', 'date'],
-            'comment' => ['nullable',],
+            'employee_id' => ['required', 'exists:' . (new Employe)->getTable() . ',id'],
+            'event_date' => ['sometimes', 'date'],
             'user_id' => ['nullable'],
-            'employe_id' => ['required', 'exists:' . (new Employe)->getTable() . ',id']
         ];
     }
 
@@ -55,41 +50,17 @@ class CareerEvent extends Model implements Imodel
     public function update_rules()
     {
         return [
-            'comment' => ['sometimes'],
             'event_date' => ['sometimes', 'date'],
-            'event' => ['sometimes'],
-            'employe_id' => ['sometimes'],
-            'user_id' => ['sometimes']
         ];
     }
 
     /**
      * Get the relation methods for the model.
      */
-    public $relation_methods = ['employe', 'retirement', 'dismissal', 'sanction', 'assignment'];
+    public $relation_methods = ['employe'];
 
     public function employe()
     {
-        return $this->belongsTo(Employe::class);
-    }
-
-    public function retirement()
-    {
-        return $this->hasOne(Retirement::class);
-    }
-
-    public function dismissal()
-    {
-        return $this->hasOne(Dismissal::class);
-    }
-
-    public function sanction()
-    {
-        return $this->hasOne(Sanction::class);
-    }
-
-    public function assignment()
-    {
-        return $this->hasOne(Assignment::class);
+        return $this->belongsTo(Employe::class, 'employee_id');
     }
 }

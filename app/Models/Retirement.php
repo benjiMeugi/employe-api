@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Traits\BelongsToCareerEvent;
 use BenjiMeugi\Contracts\IModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,6 +11,12 @@ class Retirement extends Model implements IModel
 {
     /** @use HasFactory<\Database\Factories\TitleFactory> */
     use HasFactory;
+
+    /**
+     * Utilisation d'un trait permettant de regrouper la logique de creation
+     * du career_event
+     */
+    use BelongsToCareerEvent;
 
     /**
      * Son id vient toujours de career_events, jamais auto-généré ici.

@@ -67,8 +67,6 @@ Route::prefix('career_event')->group(function () {
     $controller = CareerEventController::class;
     $startAbility = 'career_event';
     Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-    Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-    Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
     Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
 });
 

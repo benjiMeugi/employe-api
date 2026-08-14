@@ -14,11 +14,10 @@ return new class extends Migration
     {
         Schema::create('career_events', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('employe_id')->constrained('employes')->cascadeOnDelete();
+            $table->foreignId('employee_id')->constrained('employes')->cascadeOnDelete();
             $table->date('event_date');
             $table->enum('event', CareerEvent::$EVENT_OPTIONS);
             $table->bigInteger('user_id')->nullable();
-            $table->string('comment')->nullable();
             $table->timestamps();
         });
     }
