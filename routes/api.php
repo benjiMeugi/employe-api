@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AbsenceRequestController;
 use App\Http\Controllers\AbsenceTypeController;
 use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\CareerEventController;
@@ -138,6 +139,15 @@ Route::prefix('absence_type')->group(function () {
 Route::prefix('leave_credit')->group(function () {
     $controller = LeaveCreditController::class;
     $startAbility = 'leave_credit';
+    Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+    Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
+    Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
+    Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+});
+
+Route::prefix('absence_request')->group(function () {
+    $controller = AbsenceRequestController::class;
+    $startAbility = 'absence_request';
     Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
     Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
     Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
