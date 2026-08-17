@@ -23,7 +23,7 @@ class AbsenceType extends Model
         'max_cumulative_years',
         'day_cap',
         'expiration_delay_months',
-        'requires_supporting_documents'
+        'requires_supporting_document'
     ];
 
     /**
@@ -46,8 +46,8 @@ class AbsenceType extends Model
             'is_paid' => ['required', 'boolean'],
             'is_cumulative' => ['required', 'boolean'],
             'max_cumulative_years' => ['required', "integer"],
-            'days_cap' => ['required', 'numeric'],
-            'expiration_delay_month' => ['required', 'integer'],
+            'day_cap' => ['required', 'numeric'],
+            'expiration_delay_months' => ['required', 'integer'],
             'requires_supporting_documents' => ['required', 'boolean'],
         ];
     }
@@ -63,8 +63,8 @@ class AbsenceType extends Model
             'is_paid' => ['sometimes', 'boolean'],
             'is_cumulative' => ['sometimes', 'boolean'],
             'max_cumulative_years' => ['sometimes'],
-            'days_cap' => ['sometimes'],
-            'expiration_delay_month' => ['sometimes'],
+            'day_cap' => ['sometimes'],
+            'expiration_delay_months' => ['sometimes'],
             'requires_supporting_documents' => ['sometimes', 'boolean']
         ];
     }

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string("label");
             $table->boolean("is_paid")->default(false);
             $table->boolean("is_cumulative")->default(false);
-            $table->integer("max_cumulative")->nullable();
+            $table->integer("max_cumulative_years")->nullable();
             $table->double("day_cap")->nullable();
             $table->integer("expiration_delay_months")->nullable();
             $table->boolean("requires_supporting_document")->default(false);

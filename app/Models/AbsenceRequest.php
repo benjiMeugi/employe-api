@@ -6,7 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class AbsenceRequest extends Model
-{/** @use HasFactory<\Database\Factories\EmployeFactory> */
+{
+    /** @use HasFactory<\Database\Factories\EmployeFactory> */
     use HasFactory;
 
     public static $STATUS_OPTIONS = ['pending','approved', 'rejected'];
@@ -27,7 +28,6 @@ class AbsenceRequest extends Model
         'approver_id',
         "decision_datetime",
         "decision_comment",
-        "is_deductible",
     ];
 
     /**
@@ -55,7 +55,6 @@ class AbsenceRequest extends Model
             'approver_id' => ['nullable', 'exists:' . ((new Employe)->getTable() . ',id')],
             'decision_datetime' => ['nullable', "date"],
             'decision_comment' => ['nullable', 'max:255'],
-            'is_deductible' => ['nullable', 'boolean']
 
         ];
     }
@@ -76,7 +75,6 @@ class AbsenceRequest extends Model
             'approver_id' => ['sometimes'],
             'decision_datetime' => ['sometimes', 'date'],
             'decision_comment' => ['sometimes', 'max:255'],
-            'is_deductible' => ['sometimes', 'boolean']
         ];
     }
 

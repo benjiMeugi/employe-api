@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('absence_requests', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('employee_id')->constrained('employees')->cascadeOnDelete();
+            $table->foreignId('employe_id')->constrained('employees')->cascadeOnDelete();
             $table->foreignId('approver_id')->nullable()->constrained('employees')->nullOnDelete();
             $table->foreignId('absence_type_id')->constrained('absence_types')->nullOnDelete();
             $table->date('requested_start_date');
@@ -24,7 +24,6 @@ return new class extends Migration
             $table->enum('status', AbsenceRequest::$STATUS_OPTIONS);
             $table->dateTime('decision_datetime')->nullable();
             $table->string('decision_comment')->nullable();
-            $table->boolean('is_deductible')->default(null)->nullable();
             $table->timestamps();
         });
     }
