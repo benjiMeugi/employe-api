@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('leave_credits', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('employee_id')->constrained("employees")->cascadeOnDelete();
+            $table->foreignId('absence_type_id')->constrained("absence_types")->cascadeOnDelete();
+            $table->string("period");
+            $table->double("acquired_days");
+            $table->date("acquisition_date");
+            $table->date("expiration_date");
             $table->timestamps();
         });
     }

@@ -72,6 +72,11 @@ class AbsenceType extends Model
     /**
      * Get the relation methods for the model.
      */
-    public $relation_methods = [];
+    public $relation_methods = ["LeaveCredit"];
+
+    public function leaveCredit()
+    {
+        return $this->hasMany(LeaveCredit::class);
+    }
 
 }

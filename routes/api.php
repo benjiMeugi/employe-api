@@ -6,6 +6,7 @@ use App\Http\Controllers\CareerEventController;
 use App\Http\Controllers\ClassificationController;
 use App\Http\Controllers\DismissalController;
 use App\Http\Controllers\EmployeController;
+use App\Http\Controllers\LeaveCreditController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\PromotionController;
 use \App\Http\Controllers\RetirementController;
@@ -128,6 +129,15 @@ Route::prefix('promotion')->group(function () {
 Route::prefix('absence_type')->group(function () {
     $controller = AbsenceTypeController::class;
     $startAbility = 'absence_type';
+    Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+    Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
+    Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
+    Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+});
+
+Route::prefix('leave_credit')->group(function () {
+    $controller = LeaveCreditController::class;
+    $startAbility = 'leave_credit';
     Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
     Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
     Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
