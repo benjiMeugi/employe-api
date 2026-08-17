@@ -31,6 +31,8 @@ class Assignment extends Model implements Imodel
      * @var array
      */
     protected $fillable = [
+        'employee_id',
+        'event_date',
         'reason',
         'position_id',
         'unit_id',
@@ -54,7 +56,7 @@ class Assignment extends Model implements Imodel
     {
         return [
             'position_id' => ['required', 'exists:' . (new Position)->getTable() . ',id'],
-            'unit_id' => ['required', 'exists:' . (new Unit)->getTable() . 'id'],
+            'unit_id' => ['required', 'exists:' . (new Unit)->getTable() . ',id'],
             'start_date' => ['required', 'date'],
             'end_date' => ['nullable', 'date'],
             'reason' => ['nullable', 'string'],

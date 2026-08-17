@@ -31,6 +31,8 @@ class Dismissal extends Model implements Imodel
      * @var array
      */
     protected $fillable = [
+        'employee_id',
+        'event_date',
         'reason',
         'effective_date',
         'severance_pay',
@@ -54,7 +56,7 @@ class Dismissal extends Model implements Imodel
         return [
             'effective_date' => ['required', 'date'],
             'reason' => ['string', 'max:255'],
-            'severance_pay' => ['nullable', 'double'],
+            'severance_pay' => ['nullable', 'numeric'],
             'notice_days' => ['nullable', 'numeric:'],
         ];
     }
@@ -67,7 +69,7 @@ class Dismissal extends Model implements Imodel
         return [
             'effective_date' => ['sometimes', 'date'],
             'reason' => ['sometimes'],
-            'severance_pay' => ['sometimes', 'double'],
+            'severance_pay' => ['sometimes', 'numeric'],
             'notice_days' => ['sometimes', 'numeric'],
         ];
     }

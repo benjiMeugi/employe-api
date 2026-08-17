@@ -31,6 +31,8 @@ class Retirement extends Model implements IModel
      * @var array
      */
     protected $fillable = [
+        'employee_id',
+        'event_date',
         'effective_date',
         'reason',
     ];

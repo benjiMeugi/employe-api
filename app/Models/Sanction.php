@@ -33,6 +33,8 @@ class Sanction extends Model implements Imodel
      * @var array
      */
     protected $fillable = [
+        'employee_id',
+        'event_date',
         'reason',
         'duration_days',
         'sanction_type',
