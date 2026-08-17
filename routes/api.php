@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AbsenceTypeController;
 use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\CareerEventController;
 use App\Http\Controllers\ClassificationController;
@@ -118,6 +119,15 @@ Route::prefix('unit')->group(function () {
 Route::prefix('promotion')->group(function () {
     $controller = PromotionController::class;
     $startAbility = 'promotion';
+    Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+    Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
+    Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
+    Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+});
+
+Route::prefix('absence_type')->group(function () {
+    $controller = AbsenceTypeController::class;
+    $startAbility = 'absence_type';
     Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
     Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
     Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
