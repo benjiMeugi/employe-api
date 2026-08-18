@@ -55,3 +55,41 @@ Route::prefix('employe')->group(function () {
     Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
     Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
 });
+// --- VOS NOUVELLES ROUTES (MODULE GESTION DE LA PAIE) ---
+
+Route::prefix('payroll')->group(function () {
+
+    // --- CONTRATS ---
+    Route::get('/contract-types', [\App\Http\Controllers\ContractTypeController::class, 'index']);
+    Route::post('/contract-types', [\App\Http\Controllers\ContractTypeController::class, 'store']);
+    Route::get('/contract-types/{id}', [\App\Http\Controllers\ContractTypeController::class, 'show']);
+
+    Route::get('/contracts', [\App\Http\Controllers\ContractController::class, 'index']);
+    Route::post('/contracts', [\App\Http\Controllers\ContractController::class, 'store']);
+    Route::get('/contracts/{id}', [\App\Http\Controllers\ContractController::class, 'show']);
+
+    // --- BULLETINS DE PAIE & CALCULS ---
+    Route::get('/payslips', [\App\Http\Controllers\PayslipController::class, 'index']);
+    Route::get('/payslips/{id}', [\App\Http\Controllers\PayslipController::class, 'show']);
+    Route::post('/payslips/generate', [\App\Http\Controllers\PayslipController::class, 'generate']); // La route magique
+    
+    Route::get('/payslip-lines/{id}', [\App\Http\Controllers\PayslipLineController::class, 'show']);
+
+    // --- RUBRIQUES & CONFIGURATIONS ---
+    Route::post('/line-types', [\App\Http\Controllers\PayrollLineTypeController::class, 'store']);
+    Route::get('/line-types', [\App\Http\Controllers\PayrollLineTypeController::class, 'index']);
+    Route::post('/classifications/lines', [\App\Http\Controllers\ClassificationPayrollLineTypeController::class, 'store']);
+
+    // --- ABSENCES & CONGÉS ---
+    Route::get('/absence-types', [\App\Http\Controllers\AbsenceTypeController::class, 'index']);
+    Route::post('/absence-types', [\App\Http\Controllers\AbsenceTypeController::class, 'store']);
+
+    Route::get('/absence-requests', [\App\Http\Controllers\AbsenceRequestController::class, 'index']);
+    Route::post('/absence-requests', [\App\Http\Controllers\AbsenceRequestController::class, 'store']);
+
+    Route::get('/absences', [\App\Http\Controllers\AbsenceController::class, 'index']);
+
+    Route::post('/leave-credits', [\App\Http\Controllers\LeaveCreditController::class, 'store']);
+    Route::get('/leave-balances/employee/{employee_id}', [\App\Http\Controllers\LeaveBalanceController::class, 'show']);
+});
+
