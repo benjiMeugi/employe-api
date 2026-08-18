@@ -18,7 +18,6 @@ return new class extends Migration
             $table->date('start_date');
             $table->date('end_date');
             $table->double('days_count');
-            $table->string('reason');
             $table->boolean('is_deductible')->nullable();
             $table->foreignId('leave_credit_id')->nullable()->constrained('leave_credits')->nullOnDelete();
             $table->timestamps();

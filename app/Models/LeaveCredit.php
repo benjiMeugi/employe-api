@@ -66,7 +66,7 @@ class LeaveCredit extends Model
     /**
      * Get the relation methods for the model.
      */
-    public $relation_methods = ["employee", "AbsenceType" ];
+    public $relation_methods = ["employee", "absenceType" ];
 
     public function employee()
     {

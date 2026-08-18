@@ -4,6 +4,7 @@ use App\Http\Controllers\AbsenceController;
 use App\Http\Controllers\AbsenceRequestController;
 use App\Http\Controllers\AbsenceTypeController;
 use App\Http\Controllers\AssignmentController;
+use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\CareerEventController;
 use App\Http\Controllers\ClassificationController;
 use App\Http\Controllers\DismissalController;
@@ -160,6 +161,17 @@ Route::prefix('absence')->group(function () {
     $startAbility = 'absence';
     Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
     Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
+    Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
+    Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+});
+
+Route::prefix('attachment')->group(function () {
+    $controller = AttachmentController::class;
+    $startAbility = 'attachment';
+    Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+    Route::get('/{id}/download', [$controller, 'download']);
+    Route::post('/absence/{id}', [AttachmentController::class, 'storeForAbsence']);
+    Route::post('/absence_request/{id}', [AttachmentController::class, 'storeForAbsenceRequest']);
     Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
     Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
 });

@@ -48,7 +48,7 @@ class AbsenceType extends Model
             'max_cumulative_years' => ['required', "integer"],
             'day_cap' => ['required', 'numeric'],
             'expiration_delay_months' => ['required', 'integer'],
-            'requires_supporting_documents' => ['required', 'boolean'],
+            'requires_supporting_document' => ['required', 'boolean'],
         ];
     }
 
@@ -65,18 +65,27 @@ class AbsenceType extends Model
             'max_cumulative_years' => ['sometimes'],
             'day_cap' => ['sometimes'],
             'expiration_delay_months' => ['sometimes'],
-            'requires_supporting_documents' => ['sometimes', 'boolean']
+            'requires_supporting_document' => ['sometimes', 'boolean']
         ];
     }
 
     /**
      * Get the relation methods for the model.
      */
-    public $relation_methods = ["LeaveCredit"];
+    public $relation_methods = ["leaveCredit", "absence", "absenceRequest"];
 
     public function leaveCredit()
     {
         return $this->hasMany(LeaveCredit::class);
     }
 
+    public function absence()
+    {
+        return $this->hasMany(Absence::class);
+    }
+
+    public function absenceRequest()
+    {
+        return $this->hasMany(AbsenceRequest::class);
+    }
 }

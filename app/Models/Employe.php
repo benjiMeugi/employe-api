@@ -91,7 +91,7 @@ class Employe extends Model
     /**
      * Get the relation methods for the model.
      */
-    public $relation_methods = ['title', 'classification', 'position', 'career_event'];
+    public $relation_methods = ['title', 'classification', 'position', 'careerEvent'];
 
     public function title()
     {
@@ -108,7 +108,7 @@ class Employe extends Model
         return $this->belongsTo(Position::class);
     }
 
-    public function career_event()
+    public function careerEvent()
     {
         return $this->hasMany(CareerEvent::class, 'employee_id');
     }

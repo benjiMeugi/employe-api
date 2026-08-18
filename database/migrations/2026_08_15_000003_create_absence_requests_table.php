@@ -14,14 +14,14 @@ return new class extends Migration
     {
         Schema::create('absence_requests', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('employe_id')->constrained('employees')->cascadeOnDelete();
-            $table->foreignId('approver_id')->nullable()->constrained('employees')->nullOnDelete();
-            $table->foreignId('absence_type_id')->constrained('absence_types')->nullOnDelete();
+            $table->foreignId('employee_id')->constrained('employes')->cascadeOnDelete();
+            $table->foreignId('approver_id')->nullable()->constrained('employes')->nullOnDelete();
+            $table->foreignId('absence_type_id')->constrained('absence_types')->restrictOnDelete();
             $table->date('requested_start_date');
             $table->date('requested_end_date');
             $table->double('requested_days_count');
             $table->string('reason');
-            $table->enum('status', AbsenceRequest::$STATUS_OPTIONS);
+            $table->enum('status', AbsenceRequest::$STATUS_OPTIONS)->default(AbsenceRequest::$STATUS_OPTIONS[0]);
             $table->dateTime('decision_datetime')->nullable();
             $table->string('decision_comment')->nullable();
             $table->timestamps();

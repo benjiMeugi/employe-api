@@ -51,7 +51,6 @@ class AbsenceRequest extends Model
             'requested_days_count' => ['required', 'numeric'],
             'requested_start_date' => ['required', "date"],
             'requested_end_date' => ['required', 'date'],
-            'status' => ['required', 'in:' . implode(',', self::$STATUS_OPTIONS)],
             'approver_id' => ['nullable', 'exists:' . ((new Employe)->getTable() . ',id')],
             'decision_datetime' => ['nullable', "date"],
             'decision_comment' => ['nullable', 'max:255'],
@@ -81,7 +80,7 @@ class AbsenceRequest extends Model
     /**
      * Get the relation methods for the model.
      */
-    public $relation_methods = ["employee", "AbsenceType" ];
+    public $relation_methods = ["employee", "absenceType", "attachments" ];
 
     public function employee()
     {
@@ -91,6 +90,11 @@ class AbsenceRequest extends Model
     public function absenceType()
     {
         return $this->belongsTo(AbsenceType::class);
+    }
+
+    public function attachments()
+    {
+        return $this->morphMany(Attachment::class, 'attachable');
     }
 
 }

@@ -30,6 +30,10 @@ class DatabaseSeeder extends Seeder
             EmployeSeeder::class,
             UnitSeeder::class,
             CareerEventSeeder::class,
+            AbsenceTypeSeeder::class,
+            LeaveCreditSeeder::class,
+            AbsenceRequestSeeder::class,
+            AbsenceSeeder::class,
         ]);
 
         Employe::factory()->count(100)->create();

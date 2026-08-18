@@ -77,9 +77,9 @@ class Dismissal extends Model implements Imodel
     /**
      * Get the relation methods for the model.
      */
-    public $relation_methods = ['career_event'];
+    public $relation_methods = ['careerEvent'];
 
-    public function career_event()
+    public function careerEvent()
     {
         return $this->belongsTo(CareerEvent::class, 'id');
     }

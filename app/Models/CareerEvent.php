@@ -10,7 +10,7 @@ class CareerEvent extends Model
     /** @use HasFactory<\Database\Factories\CareerEventFactory> */
     use HasFactory;
 
-    public static $EVENT_OPTIONS = ['assignment', 'promotion', 'sanction', 'retirement', 'dismissal'];
+    public static $EVENT_OPTIONS = ['assignment', 'promotion', 'sanction', 'retirement', 'dismissal', 'absence'];
 
     /**
      * Fillable column of the related table
