@@ -7,27 +7,92 @@ use Illuminate\Http\Request;
 
 class ContractTypeController extends Controller
 {
-    public function index()
+    /**
+     * @var ContractType
+     */
+    private ContractType $model;
+
+    /**
+     * @var Repository
+     */
+    private Repository $repository;
+
+    public function __construct()
     {
-        return response()->json(ContractType::all(), 200);
+        $this->model = new ContractType();
+        $this->repository = new Repository($this->model);
     }
 
+    /**
+     * List resource
+     * 
+     * @param Request $request
+     */
+    public function index(Request $request, $id = null)
+    {
+        if ($id !== null) {
+            return $this->show($request, $id);
+        }
+
+        $query = $this->repository->parse_filters($request);
+
+        // return response
+        if ($request->has('page') && $request->has('per_page')) {
+            return $this->respondOk($query->paginate($request->input('per_page')));
+        }
+        return $this->respondOk($query->get());
+    }
+
+    /**
+     * List single resource
+     * 
+     * @param Request $request
+     * @param int $id
+     */
+    public function show(Request $request, int $id)
+    {
+        return $this->repository->show($request, $id);
+    }
+
+    /**
+     * Store resource
+     * 
+     * @param Request $request
+     */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'code' => 'required|string|unique:contract_types,code',
-            'label' => 'required|string',
-            'is_fixed_term' => 'required|boolean',
-            'max_duration_months' => 'nullable|integer',
-        ]);
+        $validator = $this->repository->check($request, $this->repository->rules());
+        if (true !== $validator) {
+            return $validator;
+        }
 
-        $type = ContractType::create($validated);
-        return response()->json($type, 201);
+        return $this->respondOk($this->repository->store($request));
     }
 
-    public function show($id)
+    /**
+     * Update resource
+     *  
+     * @param Request $request
+     * @param int $id
+     */
+    public function update(Request $request, int $id)
     {
-        $type = ContractType::find($id);
-        return $type ? response()->json($type, 200) : response()->json(['message' => 'Introuvable'], 404);
+        $validator = $this->repository->check($request, $this->repository->update_rules(), $id);
+        if (true !== $validator) {
+            return $validator;
+        }
+
+        return $this->respondOk($this->repository->update($request, $id));
+    }
+
+    /**
+     * Delete resource
+     * 
+     * @param Request $request
+     * @param int $id
+     */
+    public function delete(Request $request, int $id)
+    {
+        return $this->respondOk($this->repository->delete($request, $id));
     }
 }

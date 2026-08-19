@@ -8,15 +8,73 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Contract extends Model 
 {
-    protected $fillable = ['employee_id', 'contract_type_id', 'start_date', 'end_date', 'pay_frequency', 'base_salary', 'status'];
+    /** @use HasFactory<\Database\Factories\EmployeFactory> */
+    use HasFactory;
 
-    public function contractType(): BelongsTo 
-    { 
-        return $this->belongsTo(ContractType::class); 
+    public static $STATUS_OPTIONS = ['Active', 'Terminated', 'Suspended'];
+
+        /**
+     * Fillable column of the related table
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'employee_id',
+        'contract_type_id',
+        'start_date',
+        'end_date',
+        'pay_frequency',
+        'base_salary',
+        'status',
+    ];
+
+    /**
+     * Get the migrate key for the model.
+     */
+    public function getMigrateKey()
+    {
+        return $this->getForeignKey();
     }
 
-    public function payslips(): HasMany 
-    { 
-        return $this->hasMany(Payslip::class); 
+
+    /**
+     * Get the validation rules for the model.
+     */
+    public function rules()
+    {
+        return [
+            'pay_frequency' => ['required', 'max:255'],
+            'base_salary' => ['required', 'numeric'],
+            'status' => ['required', 'in:' . implode(',', self::$STATUS_OPTIONS)],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['nullable', 'date'],
+            'code' => ['required', 'unique:' . $this->getTable(), 'max:255'],
+            'employee_id' => ['required', 'exists:' . (new Employe)->getTable() . ',id'],
+            'contract_type_id' => ['required', 'exists:' . (new ContractType)->getTable() . ',id']
+        ];
     }
+
+    /**
+     * Get the validation rules for the model when updating.
+     */
+    public function update_rules()
+    {
+        return [
+            'label' => ['sometimes'],
+            'max_duration_months' => ['sometimes'],
+            'is_fixed_term' => ['sometimes'],
+            'code' => ['sometimes'],
+        ];
+    }
+
+    /**
+     * Get the relation methods for the model.
+     */
+    public $relation_methods = ['contractType'];
+
+    public function contractType() 
+    { 
+        return $this->belongsTo(contractType::class); 
+    }
+
 }

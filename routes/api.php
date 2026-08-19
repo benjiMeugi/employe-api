@@ -1,5 +1,6 @@
 <?php
-
+use App\Http\Controllers\ContractController;
+use App\Http\Controllers\ContractTypeController;
 use App\Http\Controllers\ClassificationController;
 use App\Http\Controllers\EmployeController;
 use App\Http\Controllers\PositionController;
@@ -55,18 +56,28 @@ Route::prefix('employe')->group(function () {
     Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
     Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
 });
+
+Route::prefix('contract-types')->group(function () {
+    $controller = ContContractTypeController::class;
+    $startAbility = 'contract-types';
+    Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+    Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
+    Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
+    Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+});
+
+Route::prefix('contract')->group(function () {
+    $controller = ContContractController::class;
+    $startAbility = 'contract';
+    Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+    Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
+    Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
+    Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+});
 // --- VOS NOUVELLES ROUTES (MODULE GESTION DE LA PAIE) ---
 
 Route::prefix('payroll')->group(function () {
 
-    // --- CONTRATS ---
-    Route::get('/contract-types', [\App\Http\Controllers\ContractTypeController::class, 'index']);
-    Route::post('/contract-types', [\App\Http\Controllers\ContractTypeController::class, 'store']);
-    Route::get('/contract-types/{id}', [\App\Http\Controllers\ContractTypeController::class, 'show']);
-
-    Route::get('/contracts', [\App\Http\Controllers\ContractController::class, 'index']);
-    Route::post('/contracts', [\App\Http\Controllers\ContractController::class, 'store']);
-    Route::get('/contracts/{id}', [\App\Http\Controllers\ContractController::class, 'show']);
 
     // --- BULLETINS DE PAIE & CALCULS ---
     Route::get('/payslips', [\App\Http\Controllers\PayslipController::class, 'index']);
@@ -80,16 +91,5 @@ Route::prefix('payroll')->group(function () {
     Route::get('/line-types', [\App\Http\Controllers\PayrollLineTypeController::class, 'index']);
     Route::post('/classifications/lines', [\App\Http\Controllers\ClassificationPayrollLineTypeController::class, 'store']);
 
-    // --- ABSENCES & CONGÉS ---
-    Route::get('/absence-types', [\App\Http\Controllers\AbsenceTypeController::class, 'index']);
-    Route::post('/absence-types', [\App\Http\Controllers\AbsenceTypeController::class, 'store']);
-
-    Route::get('/absence-requests', [\App\Http\Controllers\AbsenceRequestController::class, 'index']);
-    Route::post('/absence-requests', [\App\Http\Controllers\AbsenceRequestController::class, 'store']);
-
-    Route::get('/absences', [\App\Http\Controllers\AbsenceController::class, 'index']);
-
-    Route::post('/leave-credits', [\App\Http\Controllers\LeaveCreditController::class, 'store']);
-    Route::get('/leave-balances/employee/{employee_id}', [\App\Http\Controllers\LeaveBalanceController::class, 'show']);
 });
 

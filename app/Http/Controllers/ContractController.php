@@ -7,30 +7,92 @@ use Illuminate\Http\Request;
 
 class ContractController extends Controller
 {
-    public function index()
+    /**
+     * @var Contract
+     */
+    private Contract $model;
+
+    /**
+     * @var Repository
+     */
+    private Repository $repository;
+
+    public function __construct()
     {
-        return response()->json(Contract::with('contractType')->get(), 200);
+        $this->model = new Contract();
+        $this->repository = new Repository($this->model);
     }
 
+    /**
+     * List resource
+     * 
+     * @param Request $request
+     */
+    public function index(Request $request, $id = null)
+    {
+        if ($id !== null) {
+            return $this->show($request, $id);
+        }
+
+        $query = $this->repository->parse_filters($request);
+
+        // return response
+        if ($request->has('page') && $request->has('per_page')) {
+            return $this->respondOk($query->paginate($request->input('per_page')));
+        }
+        return $this->respondOk($query->get());
+    }
+
+    /**
+     * List single resource
+     * 
+     * @param Request $request
+     * @param int $id
+     */
+    public function show(Request $request, int $id)
+    {
+        return $this->repository->show($request, $id);
+    }
+
+    /**
+     * Store resource
+     * 
+     * @param Request $request
+     */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'employee_id' => 'required|exists:employees,id',
-            'contract_type_id' => 'required|exists:contract_types,id',
-            'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-            'pay_frequency' => 'required|string',
-            'base_salary' => 'required|numeric|min:0',
-            'status' => 'required|in:Active,Terminated,Suspended',
-        ]);
+        $validator = $this->repository->check($request, $this->repository->rules());
+        if (true !== $validator) {
+            return $validator;
+        }
 
-        $contract = Contract::create($validated);
-        return response()->json($contract, 201);
+        return $this->respondOk($this->repository->store($request));
     }
 
-    public function show($id)
+    /**
+     * Update resource
+     *  
+     * @param Request $request
+     * @param int $id
+     */
+    public function update(Request $request, int $id)
     {
-        $contract = Contract::with('contractType')->find($id);
-        return $contract ? response()->json($contract, 200) : response()->json(['message' => 'Contrat introuvable'], 404);
+        $validator = $this->repository->check($request, $this->repository->update_rules(), $id);
+        if (true !== $validator) {
+            return $validator;
+        }
+
+        return $this->respondOk($this->repository->update($request, $id));
+    }
+
+    /**
+     * Delete resource
+     * 
+     * @param Request $request
+     * @param int $id
+     */
+    public function delete(Request $request, int $id)
+    {
+        return $this->respondOk($this->repository->delete($request, $id));
     }
 }
