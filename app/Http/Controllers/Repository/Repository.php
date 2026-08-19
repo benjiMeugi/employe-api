@@ -133,6 +133,11 @@ class Repository implements IRepository
      */
     public function delete($request, $id)
     {
+         // verifier si l'id existe dans la table
+        $validator = Validator::make(['id' => $id], ['id' => 'exists:' . $this->model->getTable() . ',id']);
+        if ($validator->fails()) {
+            return $this->respondBadRequest($validator->errors()->messages());
+        }
         return (new Parser())->delete($request->all(), $this->model, $id);
     }
 
