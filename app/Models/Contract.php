@@ -60,21 +60,32 @@ class Contract extends Model
     public function update_rules()
     {
         return [
-            'label' => ['sometimes'],
-            'max_duration_months' => ['sometimes'],
-            'is_fixed_term' => ['sometimes'],
-            'code' => ['sometimes'],
+           
+            'pay_frequency' => ['sometimes'],
+            'base_salary' => ['sometimes'],
+            'status' => ['sometimes'],
+            'start_date' => ['sometimes','date'],
+            'end_date' => ['sometimes','date'],
+            'code' => ['sometimes', 'required', IModel::IGNORE_RULE],
+            'employee_id' => ['sometimes'],
+            'contract_type_id' => ['sometimes']
         ];
     }
 
     /**
      * Get the relation methods for the model.
      */
-    public $relation_methods = ['contractType'];
+    public $relation_methods = ['contractType','employe'];
 
     public function contractType() 
     { 
         return $this->belongsTo(contractType::class); 
     }
+
+    public function Employe() 
+    { 
+        return $this->belongsTo(Employe::class); 
+    }
+
 
 }

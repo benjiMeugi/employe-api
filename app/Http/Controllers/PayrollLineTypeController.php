@@ -2,26 +2,98 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Repository\Repository;
 use App\Models\PayrollLineType;
 use Illuminate\Http\Request;
 
-class PayrollLineTypeController extends Controller
+class PayrollLineTypeController extends PayrollLineType
 {
-    public function index()
+    /**
+     * @var PayrollLineType
+     */
+    private PayrollLineType $model;
+
+    /**
+     * @var Repository
+     */
+    private Repository $repository;
+
+    public function __construct()
     {
-        return response()->json(PayrollLineType::all(), 200);
+        $this->model = new PayrollLineType();
+        $this->repository = new Repository($this->model);
     }
 
+    /**
+     * List resource
+     * 
+     * @param Request $request
+     */
+    public function index(Request $request, $id = null)
+    {
+        if ($id !== null) {
+            return $this->show($request, $id);
+        }
+
+        $query = $this->repository->parse_filters($request);
+
+        // return response
+        if ($request->has('page') && $request->has('per_page')) {
+            return $this->respondOk($query->paginate($request->input('per_page')));
+        }
+        return $this->respondOk($query->get());
+    }
+
+    /**
+     * List single resource
+     * 
+     * @param Request $request
+     * @param int $id
+     */
+    public function show(Request $request, int $id)
+    {
+        return $this->repository->show($request, $id);
+    }
+
+    /**
+     * Store resource
+     * 
+     * @param Request $request
+     */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'code' => 'required|string|unique:payroll_line_types,code',
-            'label' => 'required|string',
-            'nature' => 'required|in:Earning,Deduction',
-            'calculation_mode' => 'required|in:Rate,FixedAmount,Formula',
-        ]);
+        $validator = $this->repository->check($request, $this->repository->rules());
+        if (true !== $validator) {
+            return $validator;
+        }
 
-        $type = PayrollLineType::create($validated);
-        return response()->json($type, 201);
+        return $this->respondOk($this->repository->store($request));
+    }
+
+    /**
+     * Update resource
+     *  
+     * @param Request $request
+     * @param int $id
+     */
+    public function update(Request $request, int $id)
+    {
+        $validator = $this->repository->check($request, $this->repository->update_rules(), $id);
+        if (true !== $validator) {
+            return $validator;
+        }
+
+        return $this->respondOk($this->repository->update($request, $id));
+    }
+
+    /**
+     * Delete resource
+     * 
+     * @param Request $request
+     * @param int $id
+     */
+    public function delete(Request $request, int $id)
+    {
+        return $this->respondOk($this->repository->delete($request, $id));
     }
 }

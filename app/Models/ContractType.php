@@ -53,7 +53,7 @@ class ContractType extends Model
             'label' => ['sometimes'],
             'max_duration_months' => ['sometimes'],
             'is_fixed_term' => ['sometimes'],
-            'code' => ['sometimes'],
+            'code' => ['sometimes', 'required', IModel::IGNORE_RULE],
         ];
     }
 

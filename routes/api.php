@@ -58,7 +58,7 @@ Route::prefix('employe')->group(function () {
 });
 
 Route::prefix('contract-types')->group(function () {
-    $controller = ContContractTypeController::class;
+    $controller = ContractTypeController::class;
     $startAbility = 'contract-types';
     Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
     Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
@@ -67,29 +67,41 @@ Route::prefix('contract-types')->group(function () {
 });
 
 Route::prefix('contract')->group(function () {
-    $controller = ContContractController::class;
+    $controller = ContractController::class;
     $startAbility = 'contract';
     Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
     Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
     Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
     Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
 });
-// --- VOS NOUVELLES ROUTES (MODULE GESTION DE LA PAIE) ---
 
-Route::prefix('payroll')->group(function () {
-
-
-    // --- BULLETINS DE PAIE & CALCULS ---
-    Route::get('/payslips', [\App\Http\Controllers\PayslipController::class, 'index']);
-    Route::get('/payslips/{id}', [\App\Http\Controllers\PayslipController::class, 'show']);
-    Route::post('/payslips/generate', [\App\Http\Controllers\PayslipController::class, 'generate']); // La route magique
-    
-    Route::get('/payslip-lines/{id}', [\App\Http\Controllers\PayslipLineController::class, 'show']);
-
-    // --- RUBRIQUES & CONFIGURATIONS ---
-    Route::post('/line-types', [\App\Http\Controllers\PayrollLineTypeController::class, 'store']);
-    Route::get('/line-types', [\App\Http\Controllers\PayrollLineTypeController::class, 'index']);
-    Route::post('/classifications/lines', [\App\Http\Controllers\ClassificationPayrollLineTypeController::class, 'store']);
-
+Route::prefix('payslip')->group(function () {
+    $controller = PayslipController::class;
+    $startAbility = 'contract';
+    Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+    Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
+    Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
+    Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
 });
+
+Route::prefix('payslipLine')->group(function () {
+    $controller = payslipLineController::class;
+    $startAbility = 'contract';
+    Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+    Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
+    Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
+    Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+});
+
+Route::prefix('payrollLineType')->group(function () {
+    $controller = payrollLineTypeController::class;
+    $startAbility = 'contract';
+    Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+    Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
+    Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
+    Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+});
+
+
+
 

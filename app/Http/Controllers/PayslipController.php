@@ -2,103 +2,98 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Contract;
+use App\Http\Controllers\Repository\Repository;
 use App\Models\Payslip;
-use App\Models\PayslipLine;
-use App\Models\AbsenceRequest;
-use App\Models\PayrollLineType;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 
-class PayslipController extends Controller
+class PayslipController extends Payslip
 {
-    public function index()
+    /**
+     * @var Payslip
+     */
+    private Payslip $model;
+
+    /**
+     * @var Repository
+     */
+    private Repository $repository;
+
+    public function __construct()
     {
-        return response()->json(Payslip::with('lines')->get(), 200);
+        $this->model = new Payslip();
+        $this->repository = new Repository($this->model);
     }
 
-    public function generate(Request $request)
+    /**
+     * List resource
+     * 
+     * @param Request $request
+     */
+    public function index(Request $request, $id = null)
     {
-        $request->validate([
-    // CORRECTION ICI : employes (français) au lieu de employees (anglais)
-    'employee_id' => 'required|exists:employes,id', 
-    'period' => 'required|date_format:Y-m',
-]);
-
-
-        $employeeId = $request->employee_id;
-        $period = $request->period;
-
-        $contract = Contract::where('employee_id', $employeeId)->where('status', 'Active')->first();
-        if (!$contract) {
-            return response()->json(['error' => 'Aucun contrat actif trouvé.'], 422);
+        if ($id !== null) {
+            return $this->show($request, $id);
         }
 
-        $existing = Payslip::where('employee_id', $employeeId)->where('period', $period)->first();
-        if ($existing) {
-            return response()->json(['error' => 'Un bulletin existe déjà pour cette période.'], 422);
+        $query = $this->repository->parse_filters($request);
+
+        // return response
+        if ($request->has('page') && $request->has('per_page')) {
+            return $this->respondOk($query->paginate($request->input('per_page')));
         }
-
-        return DB::transaction(function () use ($employeeId, $contract, $period) {
-            $baseSalary = $contract->base_salary;
-
-            $payslip = Payslip::create([
-                'employee_id' => $employeeId,
-                'contract_id' => $contract->id,
-                'period' => $period,
-                'issue_date' => Carbon::now()->toDateString(),
-                'status' => 'Pending'
-            ]);
-
-            $totalEarnings = $baseSalary;
-            $totalDeductions = 0;
-
-            // Règle de calcul des absences déductibles approuvées sur la période
-            $start = Carbon::parse($period . '-01')->startOfMonth();
-            $end = Carbon::parse($period . '-01')->endOfMonth();
-
-            $absenceDays = AbsenceRequest::where('employee_id', $employeeId)
-                ->where('status', 'Approved')
-                ->where('is_deductible', true)
-                ->where(function($q) use ($start, $end) {
-                    $q->whereBetween('requested_start_date', [$start, $end])
-                      ->orWhereBetween('requested_end_date', [$start, $end]);
-                })->sum('requested_days_count');
-
-            if ($absenceDays > 0) {
-                $lineType = PayrollLineType::firstOrCreate(
-                    ['code' => 'ABS'],
-                    ['label' => 'Retenue Absence', 'nature' => 'Deduction', 'calculation_mode' => 'Formula']
-                );
-
-                $amount = ($baseSalary / 30) * $absenceDays;
-
-                PayslipLine::create([
-                    'payslip_id' => $payslip->id,
-                    'payroll_line_type_id' => $lineType->id,
-                    'calculation_base' => $baseSalary,
-                    'rate' => ($absenceDays / 30) * 100,
-                    'amount' => $amount
-                ]);
-
-                $totalDeductions += $amount;
-            }
-
-            $payslip->update([
-                'gross_salary' => $totalEarnings,
-                'total_earnings' => $totalEarnings,
-                'total_deductions' => $totalDeductions,
-                'net_pay' => $totalEarnings - $totalDeductions,
-            ]);
-
-            return response()->json($payslip->load('lines'), 201);
-        });
+        return $this->respondOk($query->get());
     }
 
-    public function show($id)
+    /**
+     * List single resource
+     * 
+     * @param Request $request
+     * @param int $id
+     */
+    public function show(Request $request, int $id)
     {
-        $payslip = Payslip::with('lines.payrollLineType')->find($id);
-        return $payslip ? response()->json($payslip, 200) : response()->json(['message' => 'Introuvable'], 404);
+        return $this->repository->show($request, $id);
+    }
+
+    /**
+     * Store resource
+     * 
+     * @param Request $request
+     */
+    public function store(Request $request)
+    {
+        $validator = $this->repository->check($request, $this->repository->rules());
+        if (true !== $validator) {
+            return $validator;
+        }
+
+        return $this->respondOk($this->repository->store($request));
+    }
+
+    /**
+     * Update resource
+     *  
+     * @param Request $request
+     * @param int $id
+     */
+    public function update(Request $request, int $id)
+    {
+        $validator = $this->repository->check($request, $this->repository->update_rules(), $id);
+        if (true !== $validator) {
+            return $validator;
+        }
+
+        return $this->respondOk($this->repository->update($request, $id));
+    }
+
+    /**
+     * Delete resource
+     * 
+     * @param Request $request
+     * @param int $id
+     */
+    public function delete(Request $request, int $id)
+    {
+        return $this->respondOk($this->repository->delete($request, $id));
     }
 }

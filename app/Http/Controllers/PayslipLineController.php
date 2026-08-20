@@ -1,21 +1,99 @@
 <?php
 
-namespace App\Models;
+namespace App\Http\Controllers;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Http\Controllers\Repository\Repository;
+use App\Models\PayslipLine;
+use Illuminate\Http\Request;
 
-class PayslipLine extends Model 
+class PayslipLineController extends PayslipLine
 {
-    protected $fillable = ['payslip_id', 'payroll_line_type_id', 'calculation_base', 'rate', 'amount'];
+    /**
+     * @var PayslipLine
+     */
+    private PayslipLine $model;
 
-    public function payslip(): BelongsTo 
-    { 
-        return $this->belongsTo(Payslip::class); 
+    /**
+     * @var Repository
+     */
+    private Repository $repository;
+
+    public function __construct()
+    {
+        $this->model = new PayslipLine();
+        $this->repository = new Repository($this->model);
     }
 
-    public function payrollLineType(): BelongsTo 
-    { 
-        return $this->belongsTo(PayrollLineType::class); 
+    /**
+     * List resource
+     * 
+     * @param Request $request
+     */
+    public function index(Request $request, $id = null)
+    {
+        if ($id !== null) {
+            return $this->show($request, $id);
+        }
+
+        $query = $this->repository->parse_filters($request);
+
+        // return response
+        if ($request->has('page') && $request->has('per_page')) {
+            return $this->respondOk($query->paginate($request->input('per_page')));
+        }
+        return $this->respondOk($query->get());
+    }
+
+    /**
+     * List single resource
+     * 
+     * @param Request $request
+     * @param int $id
+     */
+    public function show(Request $request, int $id)
+    {
+        return $this->repository->show($request, $id);
+    }
+
+    /**
+     * Store resource
+     * 
+     * @param Request $request
+     */
+    public function store(Request $request)
+    {
+        $validator = $this->repository->check($request, $this->repository->rules());
+        if (true !== $validator) {
+            return $validator;
+        }
+
+        return $this->respondOk($this->repository->store($request));
+    }
+
+    /**
+     * Update resource
+     *  
+     * @param Request $request
+     * @param int $id
+     */
+    public function update(Request $request, int $id)
+    {
+        $validator = $this->repository->check($request, $this->repository->update_rules(), $id);
+        if (true !== $validator) {
+            return $validator;
+        }
+
+        return $this->respondOk($this->repository->update($request, $id));
+    }
+
+    /**
+     * Delete resource
+     * 
+     * @param Request $request
+     * @param int $id
+     */
+    public function delete(Request $request, int $id)
+    {
+        return $this->respondOk($this->repository->delete($request, $id));
     }
 }

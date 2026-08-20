@@ -2,25 +2,98 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Repository\Repository;
 use App\Models\ClassificationPayrollLineType;
 use Illuminate\Http\Request;
 
 class ClassificationPayrollLineTypeController extends Controller
 {
+    /**
+     * @var Employe
+     */
+    private ClassificationPayrollLineType $model;
+
+    /**
+     * @var Repository
+     */
+    private Repository $repository;
+
+    public function __construct()
+    {
+        $this->model = new ClassificationPayrollLineType();
+        $this->repository = new Repository($this->model);
+    }
+
+    /**
+     * List resource
+     * 
+     * @param Request $request
+     */
+    public function index(Request $request, $id = null)
+    {
+        if ($id !== null) {
+            return $this->show($request, $id);
+        }
+
+        $query = $this->repository->parse_filters($request);
+
+        // return response
+        if ($request->has('page') && $request->has('per_page')) {
+            return $this->respondOk($query->paginate($request->input('per_page')));
+        }
+        return $this->respondOk($query->get());
+    }
+
+    /**
+     * List single resource
+     * 
+     * @param Request $request
+     * @param int $id
+     */
+    public function show(Request $request, int $id)
+    {
+        return $this->repository->show($request, $id);
+    }
+
+    /**
+     * Store resource
+     * 
+     * @param Request $request
+     */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'classification_id' => 'required|integer',
-            'payroll_line_type_id' => 'required|exists:payroll_line_types,id',
-            'value' => 'required|numeric',
-        ]);
+        $validator = $this->repository->check($request, $this->repository->rules());
+        if (true !== $validator) {
+            return $validator;
+        }
 
-        // Crée ou met à jour la règle pour cette classification
-        $pivot = ClassificationPayrollLineType::updateOrCreate(
-            ['classification_id' => $validated['classification_id'], 'payroll_line_type_id' => $validated['payroll_line_type_id']],
-            ['value' => $validated['value']]
-        );
+        return $this->respondOk($this->repository->store($request));
+    }
 
-        return response()->json($pivot, 200);
+    /**
+     * Update resource
+     *  
+     * @param Request $request
+     * @param int $id
+     */
+    public function update(Request $request, int $id)
+    {
+        $validator = $this->repository->check($request, $this->repository->update_rules(), $id);
+        if (true !== $validator) {
+            return $validator;
+        }
+
+        return $this->respondOk($this->repository->update($request, $id));
+    }
+
+    /**
+     * Delete resource
+     * 
+     * @param Request $request
+     * @param int $id
+     */
+    public function delete(Request $request, int $id)
+    {
+        return $this->respondOk($this->repository->delete($request, $id));
     }
 }

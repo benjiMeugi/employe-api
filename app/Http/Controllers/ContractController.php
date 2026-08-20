@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Repository\Repository;
 use App\Models\Contract;
 use Illuminate\Http\Request;
 
