@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AbilityController;
 use App\Http\Controllers\AbsenceController;
 use App\Http\Controllers\AbsenceRequestController;
 use App\Http\Controllers\AbsenceTypeController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\LeaveCreditController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\PromotionController;
 use \App\Http\Controllers\RetirementController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SanctionController;
 use App\Http\Controllers\TitleController;
 use App\Http\Controllers\UnitController;
@@ -62,7 +64,7 @@ Route::prefix('classification')->group(function () {
 Route::prefix('employe')->group(function () {
     $controller = EmployeController::class;
     $startAbility = 'employe';
-    Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+    Route::get('/{id?}', [$controller, 'index'])->middleware(array_filter(['auth:api', resolveAbility($startAbility, 'list')]));
     Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
     Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
     Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
@@ -174,4 +176,24 @@ Route::prefix('attachment')->group(function () {
     Route::post('/absence_request/{id}', [AttachmentController::class, 'storeForAbsenceRequest']);
     Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
     Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+});
+
+Route::prefix('role')->group(function () {
+    $controller = RoleController::class;
+    Route::get('/{id?}', [$controller, 'index'])->middleware(['auth:api', 'super-admin']);
+    Route::post('/', [$controller, 'store'])->middleware(['auth:api', 'super-admin']);
+    Route::put('/{id}', [$controller, 'update'])->middleware(['auth:api', 'super-admin']);
+    Route::delete('/{id}', [$controller, 'delete'])->middleware(['auth:api', 'super-admin']);
+
+    Route::put('/{id}/abilities', [$controller, 'syncAbilities'])->middleware(['auth:api', 'super-admin']);
+    Route::post('/{id}/abilities', [$controller, 'addAbility'])->middleware(['auth:api', 'super-admin']);
+    Route::delete('/{id}/abilities', [$controller, 'removeAbility'])->middleware(['auth:api', 'super-admin']);
+});
+
+Route::prefix('ability')->group(function () {
+    $controller = AbilityController::class;
+    Route::get('/{id?}', [$controller, 'index'])->middleware(['auth:api', 'super-admin']);
+    Route::post('/', [$controller, 'store'])->middleware(['auth:api', 'super-admin']);
+    Route::put('/{id}', [$controller, 'update'])->middleware(['auth:api', 'super-admin']);
+    Route::delete('/{id}', [$controller, 'delete'])->middleware(['auth:api', 'super-admin']);
 });
