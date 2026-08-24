@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 
 class Payslip extends Model 
 { 
@@ -39,13 +41,13 @@ class Payslip extends Model
         return [
             'employee_id' => ['required', 'exists:' . (new Employe)->getTable() . ',id'],
             'contract_id' =>['required', 'exists:' . (new Contract)->getTable() . ',id'],
-            'period' => ['required'],
-            'issue_date' => ['required'],
-            'gross_salary' => ['required'],
-            'total_earnings' => ['required'],
-            'status' => ['required'],
-            'total_deductions' => ['required'],
-            'net_pay' => ['required'],
+            'period' => ['required', 'date_format:Y-m'],
+            'issue_date' => ['required', 'date'],
+            'gross_salary' => ['required', 'numeric'],
+            'total_earnings' => ['required', 'numeric'],
+            'status' => ['required', 'in:' . implode(',', self::$STATUS_OPTIONS)],
+            'total_deductions' => ['required', 'numeric'],
+            'net_pay' => ['required', 'numeric'],
             
         ];
     }
@@ -56,15 +58,15 @@ class Payslip extends Model
     public function update_rules()
     {
         return [
-            'employee_id' => ['sometimes'],
-            'contract_id' => ['sometimes'],
-            'period' => ['sometimes',],
+            'employee_id' => ['sometimes', 'exists:' . (new Employe)->getTable() . ',id'],
+            'contract_id' => ['sometimes', 'exists:' . (new Contract)->getTable() . ',id'],
+            'period' => ['sometimes', 'date_format:Y-m'],
             'issue_date' => ['sometimes','date'],
-            'gross_salary' => ['sometimes'],
-            'status' => ['sometimes'],
-            'total_deductions' => ['sometimes'],
-            'total_earnings' => ['sometimes'],
-            'net_pay' => ['sometimes'],
+            'gross_salary' => ['sometimes', 'numeric'],
+            'status' => ['sometimes', 'in:' . implode(',', self::$STATUS_OPTIONS)],
+            'total_deductions' => ['sometimes', 'numeric'],
+            'total_earnings' => ['sometimes', 'numeric'],
+            'net_pay' => ['sometimes', 'numeric'],
             
         ];
     }
@@ -87,6 +89,11 @@ class Payslip extends Model
     public function lines(): HasMany 
     { 
         return $this->hasMany(PayslipLine::class); 
+    }
+
+    public function payslipLine(): HasMany
+    {
+        return $this->lines();
     }
 
 

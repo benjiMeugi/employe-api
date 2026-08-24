@@ -6,7 +6,7 @@ use App\Http\Controllers\Repository\Repository;
 use App\Models\PayrollLineType;
 use Illuminate\Http\Request;
 
-class PayrollLineTypeController extends PayrollLineType
+class PayrollLineTypeController extends Controller
 {
     /**
      * @var PayrollLineType
@@ -94,6 +94,6 @@ class PayrollLineTypeController extends PayrollLineType
      */
     public function delete(Request $request, int $id)
     {
-        return $this->respondOk($this->repository->delete($request, $id));
+        return $this->repository->delete($request, $id);
     }
 }

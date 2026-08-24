@@ -25,7 +25,7 @@ class PayslipLine extends Model
     {
         return [
             'payslip_id' => ['required', 'exists:' . (new payslip)->getTable() . ',id'],
-            'payroll_line_type_id' => ['required', 'exists:' . (new payslip)->getTable() . ',id'],
+            'payroll_line_type_id' => ['required', 'exists:' . (new PayrollLineType)->getTable() . ',id'],
             'calculation_base' => ['required'],
             'rate' => ['required'],
             'amount' => ['required'],
@@ -52,7 +52,7 @@ class PayslipLine extends Model
       /**
      * Get the relation methods for the model.
      */
-    public $relation_methods = [' payslip', 'payrollLineType',];
+    public $relation_methods = ['payslip', 'payrollLineType'];
 
     public function payslip(): BelongsTo 
     { 

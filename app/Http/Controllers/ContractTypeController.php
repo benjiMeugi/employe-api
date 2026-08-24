@@ -95,6 +95,6 @@ class ContractTypeController extends Controller
      */
     public function delete(Request $request, int $id)
     {
-        return $this->respondOk($this->repository->delete($request, $id));
+        return $this->repository->delete($request, $id);
     }
 }

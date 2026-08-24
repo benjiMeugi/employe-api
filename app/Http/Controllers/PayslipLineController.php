@@ -6,7 +6,7 @@ use App\Http\Controllers\Repository\Repository;
 use App\Models\PayslipLine;
 use Illuminate\Http\Request;
 
-class PayslipLineController extends PayslipLine
+class PayslipLineController extends Controller
 {
     /**
      * @var PayslipLine
@@ -94,6 +94,6 @@ class PayslipLineController extends PayslipLine
      */
     public function delete(Request $request, int $id)
     {
-        return $this->respondOk($this->repository->delete($request, $id));
+        return $this->repository->delete($request, $id);
     }
 }

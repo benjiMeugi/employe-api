@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use BenjiMeugi\Contracts\IModel;
 use Illuminate\Database\Eloquent\Model;
 
 class PayrollLineType extends Model 
@@ -53,5 +54,5 @@ class PayrollLineType extends Model
     /**
      * Get the relation methods for the model.
      */
-    
-    }
+    public $relation_methods = [];
+}
