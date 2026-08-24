@@ -34,6 +34,7 @@ class DatabaseSeeder extends Seeder
             LeaveCreditSeeder::class,
             AbsenceRequestSeeder::class,
             AbsenceSeeder::class,
+            RoleAbilitySeeder::class,
         ]);
 
         Employe::factory()->count(100)->create();

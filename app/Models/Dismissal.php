@@ -83,4 +83,18 @@ class Dismissal extends Model implements Imodel
     {
         return $this->belongsTo(CareerEvent::class, 'id');
     }
+
+    /**
+     * Un licenciement désactive automatiquement l'employé — même
+     * mécanisme que Retirement.
+     */
+    protected static function booted(): void
+    {
+        static::created(function (Dismissal $dismissal) {
+            $employee = $dismissal->careerEvent->employee;
+            if ($employee) {
+                $employee->update(['status' => false]);
+            }
+        });
+    }
 }

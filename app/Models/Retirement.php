@@ -77,4 +77,19 @@ class Retirement extends Model implements IModel
     {
         return $this->belongsTo(CareerEvent::class, 'id');
     }
+
+    /**
+     * Une retraite désactive automatiquement l'employé — passe par
+     * $employee->update(), qui déclenche déjà le hook updating() sur
+     * Employe (désactivation du compte Keycloak) : rien à dupliquer ici.
+     */
+    protected static function booted(): void
+    {
+        static::created(function (Retirement $retirement) {
+            $employee = $retirement->careerEvent->employee;
+            if ($employee) {
+                $employee->update(['status' => false]);
+            }
+        });
+    }
 }

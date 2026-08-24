@@ -14,6 +14,10 @@ return new class extends Migration
     {
         Schema::create('employes', function (Blueprint $table) {
             $table->id();
+            $table->uuid('user_id')->nullable()->unique();
+            // nullable : un employé peut exister sans compte si aucun
+            // email professionnel n'est fourni à la création (cas
+            // légitime — stagiaire, pas encore onboardé...).
             $table->string('registration_number')->unique();
             $table->string('first_name');
             $table->string('last_name');
