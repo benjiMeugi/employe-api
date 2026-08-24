@@ -57,7 +57,7 @@ class Dismissal extends Model implements Imodel
             'effective_date' => ['required', 'date'],
             'reason' => ['string', 'max:255'],
             'severance_pay' => ['nullable', 'numeric'],
-            'notice_days' => ['nullable', 'numeric:'],
+            'notice_days' => ['nullable', 'numeric'],
         ];
     }
 
@@ -68,7 +68,7 @@ class Dismissal extends Model implements Imodel
     {
         return [
             'effective_date' => ['sometimes', 'date'],
-            'reason' => ['sometimes'],
+            'reason' => ['sometimes', 'max:255'],
             'severance_pay' => ['sometimes', 'numeric'],
             'notice_days' => ['sometimes', 'numeric'],
         ];

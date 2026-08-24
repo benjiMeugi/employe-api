@@ -74,7 +74,7 @@ class Promotion extends Model implements Imodel
             'new_position_id' => ['sometimes', 'nullable', 'exists:' . (new Position)->getTable() . ',id'],
             'previous_classification_id' => ['sometimes', 'nullable', 'exists:' . (new Classification)->getTable() . ',id'],
             'new_classification_id' => ['sometimes', 'nullable', 'exists:' . (new Classification)->getTable() . ',id'],
-            'reason' => ['sometimes'],
+            'reason' => ['sometimes', 'max:255'],
         ];
     }
 

@@ -54,10 +54,10 @@ class LeaveCredit extends Model
     public function update_rules()
     {
         return [
-            'employee_id' => ['sometimes'],
-            'absence_type_id' => ['sometimes'],
-            'period' => ['sometimes',],
-            'acquired_days' => ['sometimes',],
+            'employee_id' => ['sometimes', 'exists:' . (new Employe)->getTable() . ',id'],
+            'absence_type_id' => ['sometimes', 'exists:' . (new AbsenceType)->getTable() . ',id'],
+            'period' => ['sometimes', 'max:255'],
+            'acquired_days' => ['sometimes', 'numeric'],
             'acquisition_date' => ['sometimes', 'date'],
             'expiration_date' => ['sometimes', 'date'],
         ];

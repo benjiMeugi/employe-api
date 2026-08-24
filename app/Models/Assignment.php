@@ -69,7 +69,7 @@ class Assignment extends Model implements Imodel
     public function update_rules()
     {
         return [
-            'reason' => ['sometimes'],
+            'reason' => ['sometimes', 'exists:' . (new Position)->getTable() . ',id'],
             'start_date' => ['sometimes', 'date'],
             'end_date' => ['sometimes', 'date'],
             'position_id' => ['sometimes', 'exists:' . (new Position)->getTable() . ',id'],

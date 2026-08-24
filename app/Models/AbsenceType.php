@@ -58,13 +58,13 @@ class AbsenceType extends Model
     public function update_rules()
     {
         return [
-            'code' => ['sometimes'],
-            'label' => ['sometimes'],
+            'code' => ['sometimes', 'unique:' . $this->getTable(), 'max:255'],
+            'label' => ['sometimes', 'max:255'],
             'is_paid' => ['sometimes', 'boolean'],
             'is_cumulative' => ['sometimes', 'boolean'],
-            'max_cumulative_years' => ['sometimes'],
-            'day_cap' => ['sometimes'],
-            'expiration_delay_months' => ['sometimes'],
+            'max_cumulative_years' => ['sometimes', 'integer'],
+            'day_cap' => ['sometimes', 'numeric'],
+            'expiration_delay_months' => ['sometimes', 'integer'],
             'requires_supporting_document' => ['sometimes', 'boolean']
         ];
     }

@@ -52,9 +52,9 @@ class Unit extends Model implements IModel
     public function update_rules()
     {
         return [
-            'label' => ['sometimes', 'required', IModel::IGNORE_RULE],
-            'code' => ['sometimes', 'required', IModel::IGNORE_RULE],
-            'is_active' => ['sometimes', IModel::IGNORE_RULE],
+            'label' => ['sometimes', 'required',],
+            'code' => ['sometimes', 'required',],
+            'is_active' => ['sometimes',],
         ];
     }
 

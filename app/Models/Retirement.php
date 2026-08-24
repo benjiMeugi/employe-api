@@ -64,7 +64,7 @@ class Retirement extends Model implements IModel
     {
         return [
             'effective_date' => ['sometimes', 'date'],
-            'reason' => ['sometimes'],
+            'reason' => ['sometimes', 'string', 'max:255'],
         ];
     }
 

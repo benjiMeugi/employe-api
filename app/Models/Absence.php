@@ -73,11 +73,11 @@ class Absence extends Model
     public function update_rules()
     {
         return [
-            'absence_type_id' => ['sometimes'],
-            'leave_credit_id' => ['sometimes',],
-            'days_count' => ['sometimes',],
+            'absence_type_id' => ['sometimes', 'exists:' . (new AbsenceType)->getTable() . ',id'],
+            'leave_credit_id' => ['sometimes', 'exists:' . (new LeaveCredit)->getTable() . ',id'],
+            'days_count' => ['sometimes', 'numeric'],
             'start_date' => ['sometimes', 'date'],
-            'absence_request_id' => ['sometimes'],
+            'absence_request_id' => ['sometimes', 'exists:' . ((new AbsenceRequest)->getTable() . ',id')],
             'is_deductible' => ['sometimes', 'boolean']
         ];
     }
@@ -85,7 +85,7 @@ class Absence extends Model
     /**
      * Get the relation methods for the model.
      */
-    public $relation_methods = ["careerEvent", "absenceType", "attachments" ];
+    public $relation_methods = ["careerEvent", "absenceType", "attachments", "absenceRequest" ];
 
     public function careerEvent()
     {
@@ -102,4 +102,8 @@ class Absence extends Model
         return $this->morphMany(Attachment::class, 'attachable');
     }
 
+    public function absenceRequest()
+    {
+        return $this->belongsTo(AbsenceRequest::class, 'absence_request_id');
+    }
 }

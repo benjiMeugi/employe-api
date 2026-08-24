@@ -46,7 +46,7 @@ class Role extends Model
     {
         return [
             'label' => ['sometimes', 'unique:' . $this->getTable() . ',label,' . $this->id],
-            'description' => ['sometimes'],
+            'description' => ['sometimes', 'max:255'],
         ];
     }
 

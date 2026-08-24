@@ -64,14 +64,14 @@ class AbsenceRequest extends Model
     public function update_rules()
     {
         return [
-            'employee_id' => ['sometimes'],
-            'absence_type_id' => ['sometimes'],
-            'reason' => ['sometimes',],
-            'requested_days_count' => ['sometimes',],
+            'employee_id' => ['sometimes', 'exists:' . (new Employe)->getTable() . ',id'],
+            'absence_type_id' => ['sometimes', 'exists:' . (new AbsenceType)->getTable() . ',id'],
+            'reason' => ['sometimes', 'max:255'],
+            'requested_days_count' => ['sometimes', 'numeric'],
             'requested_start_date' => ['sometimes', 'date'],
             'requested_end_date' => ['sometimes', 'date'],
             'status' => ['sometimes', 'in:' . implode(',', self::$STATUS_OPTIONS)],
-            'approver_id' => ['sometimes'],
+            'approver_id' => ['sometimes', 'exists:' . ((new Employe)->getTable() . ',id')],
             'decision_datetime' => ['sometimes', 'date'],
             'decision_comment' => ['sometimes', 'max:255'],
         ];
@@ -89,7 +89,7 @@ class AbsenceRequest extends Model
 
     public function absenceType()
     {
-        return $this->belongsTo(AbsenceType::class);
+        return $this->belongsTo(AbsenceType::class, "absence_type_id");
     }
 
     public function attachments()
