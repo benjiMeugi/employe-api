@@ -26,8 +26,8 @@ class PayslipLine extends Model
         return [
             'payslip_id' => ['required', 'exists:' . (new payslip)->getTable() . ',id'],
             'payroll_line_type_id' => ['required', 'exists:' . (new PayrollLineType)->getTable() . ',id'],
-            'calculation_base' => ['required'],
-            'rate' => ['required'],
+            'calculation_base' => ['nullable', 'numeric'],
+            'rate' => ['nullable', 'numeric'],
             'amount' => ['required'],
             
         ];
@@ -39,11 +39,11 @@ class PayslipLine extends Model
     public function update_rules()
     {
         return [
-            'payslip_id' => ['sometimes'],
-            'payroll_line_type_id' => ['sometimes',],
-            'calculation_base' => ['sometimes'],
-            'rate' => ['sometimes'],
-             'amount' => ['sometimes'],
+            'payslip_id' => ['sometimes', 'exists:' . (new Payslip)->getTable() . ',id'],
+            'payroll_line_type_id' => ['sometimes', 'exists:' . (new PayrollLineType)->getTable() . ',id'],
+            'calculation_base' => ['sometimes', 'nullable', 'numeric'],
+            'rate' => ['sometimes', 'nullable', 'numeric'],
+            'amount' => ['sometimes', 'numeric'],
             
         ];
     }
@@ -56,11 +56,11 @@ class PayslipLine extends Model
 
     public function payslip(): BelongsTo 
     { 
-        return $this->belongsTo(Payslip::class); 
+        return $this->belongsTo(payslip::class); 
     }
 
     public function payrollLineType(): BelongsTo 
     { 
-        return $this->belongsTo(PayrollLineType::class); 
+        return $this->belongsTo(payrollLineType::class); 
     }
 }

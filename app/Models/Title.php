@@ -61,6 +61,6 @@ class Title extends Model implements IModel
 
     public function employe()
     {
-        return $this->belongsTo(Employe::class);
+        return $this->belongsTo(employe::class);
     }
 }

@@ -52,9 +52,9 @@ class ContractType extends Model
     public function update_rules()
     {
         return [
-            'label' => ['sometimes'],
-            'max_duration_months' => ['sometimes'],
-            'is_fixed_term' => ['sometimes'],
+            'label' => ['sometimes', 'string', 'max:255'],
+            'max_duration_months' => ['sometimes', 'nullable', 'numeric'],
+            'is_fixed_term' => ['sometimes', 'boolean'],
             'code' => ['sometimes', 'required', IModel::IGNORE_RULE],
         ];
     }
@@ -66,7 +66,7 @@ class ContractType extends Model
 
     public function contracts() 
     { 
-        return $this->hasMany(Contract::class); 
+        return $this->hasMany(contract::class); 
     }
 
 }

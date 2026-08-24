@@ -42,7 +42,7 @@ class Payslip extends Model
             'employee_id' => ['required', 'exists:' . (new Employe)->getTable() . ',id'],
             'contract_id' =>['required', 'exists:' . (new Contract)->getTable() . ',id'],
             'period' => ['required', 'date_format:Y-m'],
-            'issue_date' => ['required', 'date'],
+            'issue_date' => ['nullable', 'date'],
             'gross_salary' => ['required', 'numeric'],
             'total_earnings' => ['required', 'numeric'],
             'status' => ['required', 'in:' . implode(',', self::$STATUS_OPTIONS)],
@@ -61,7 +61,7 @@ class Payslip extends Model
             'employee_id' => ['sometimes', 'exists:' . (new Employe)->getTable() . ',id'],
             'contract_id' => ['sometimes', 'exists:' . (new Contract)->getTable() . ',id'],
             'period' => ['sometimes', 'date_format:Y-m'],
-            'issue_date' => ['sometimes','date'],
+            'issue_date' => ['sometimes', 'nullable', 'date'],
             'gross_salary' => ['sometimes', 'numeric'],
             'status' => ['sometimes', 'in:' . implode(',', self::$STATUS_OPTIONS)],
             'total_deductions' => ['sometimes', 'numeric'],
@@ -76,9 +76,9 @@ class Payslip extends Model
      */
     public $relation_methods = ['employe', 'contract', 'payslipLine'];
 
-    public function Employe(): BelongsTo
+     public function employe(): BelongsTo
     {
-       return $this->belongsTo(Employe::class);  
+         return $this->belongsTo(Employe::class, 'employee_id');
     } 
 
     public function contract(): BelongsTo 
@@ -88,7 +88,7 @@ class Payslip extends Model
 
     public function lines(): HasMany 
     { 
-        return $this->hasMany(PayslipLine::class); 
+        return $this->hasMany(payslipLine::class); 
     }
 
     public function payslipLine(): HasMany

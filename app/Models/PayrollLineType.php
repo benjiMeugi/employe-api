@@ -43,16 +43,31 @@ class PayrollLineType extends Model
         return [
             'code'=> ['sometimes', 'required', IModel::IGNORE_RULE],
             'label'=> ['sometimes', 'required', IModel::IGNORE_RULE],
-            'nature'=> ['sometimes'],
-            'calculation_mode'=> ['sometimes'],
-            'is_taxable'=> ['sometimes'],
-            'is_subject_to_contributions'=> ['sometimes'],
-            'is_employer_contribution'=> ['sometimes']
+            'nature'=> ['sometimes', 'in:Earning,Deduction'],
+            'calculation_mode'=> ['sometimes', 'in:Rate,FixedAmount,Formula'],
+            'is_taxable'=> ['sometimes', 'boolean'],
+            'is_subject_to_contributions'=> ['sometimes', 'boolean'],
+            'is_employer_contribution'=> ['sometimes', 'boolean']
         ];
     }
 
     /**
      * Get the relation methods for the model.
      */
-    public $relation_methods = [];
+    public $relation_methods = ['classifications', 'payslipLines'];
+
+    public function classifications()
+    {
+        return $this->belongsToMany(
+            Classification::class,
+            'classification_payroll_line_type',
+            'payroll_line_type_id',
+            'classification_id'
+        )->withPivot('value')->withTimestamps();
+    }
+
+    public function payslipLines()
+    {
+        return $this->hasMany(payslipLine::class);
+    }
 }

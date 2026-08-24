@@ -6,7 +6,6 @@ use BenjiMeugi\Contracts\IModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Contract extends Model 
 {
@@ -50,7 +49,6 @@ class Contract extends Model
             'status' => ['required', 'in:' . implode(',', self::$STATUS_OPTIONS)],
             'start_date' => ['required', 'date'],
             'end_date' => ['nullable', 'date'],
-            'code' => ['required', 'unique:' . $this->getTable(), 'max:255'],
             'employee_id' => ['required', 'exists:' . (new Employe)->getTable() . ',id'],
             'contract_type_id' => ['required', 'exists:' . (new ContractType)->getTable() . ',id']
         ];
@@ -63,30 +61,29 @@ class Contract extends Model
     {
         return [
            
-            'pay_frequency' => ['sometimes'],
-            'base_salary' => ['sometimes'],
-            'status' => ['sometimes'],
-            'start_date' => ['sometimes','date'],
-            'end_date' => ['sometimes','date'],
-            'code' => ['sometimes', 'required', IModel::IGNORE_RULE],
-            'employee_id' => ['sometimes'],
-            'contract_type_id' => ['sometimes']
+            'pay_frequency' => ['sometimes', 'string', 'max:255'],
+            'base_salary' => ['sometimes', 'numeric'],
+            'status' => ['sometimes', 'in:' . implode(',', self::$STATUS_OPTIONS)],
+            'start_date' => ['sometimes', 'date'],
+            'end_date' => ['sometimes', 'nullable', 'date'],
+            'employee_id' => ['sometimes', 'exists:' . (new Employe)->getTable() . ',id'],
+            'contract_type_id' => ['sometimes', 'exists:' . (new ContractType)->getTable() . ',id']
         ];
     }
 
     /**
      * Get the relation methods for the model.
      */
-    public $relation_methods = ['contractType','employe'];
+    public $relation_methods = ['contractType', 'employe'];
 
     public function contractType() 
     { 
-        return $this->belongsTo(contractType::class); 
+        return $this->belongsTo(contractType::class);
     }
 
-    public function Employe() 
+    public function employe(): BelongsTo
     { 
-        return $this->belongsTo(Employe::class); 
+        return $this->belongsTo(employe::class, 'employee_id');
     }
 
 
