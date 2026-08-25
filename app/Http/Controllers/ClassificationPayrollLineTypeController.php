@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 class ClassificationPayrollLineTypeController extends Controller
 {
     /**
-     * @var Employe
+     * @var ClassificationPayrollLineType
      */
     private ClassificationPayrollLineType $model;
 

@@ -61,7 +61,7 @@ class Payslip extends Model
             'employee_id' => ['sometimes', 'exists:' . (new Employe)->getTable() . ',id'],
             'contract_id' => ['sometimes', 'exists:' . (new Contract)->getTable() . ',id'],
             'period' => ['sometimes', 'date_format:Y-m'],
-            'issue_date' => ['sometimes', 'nullable', 'date'],
+            'issue_date' => ['sometimes','date'],
             'gross_salary' => ['sometimes', 'numeric'],
             'status' => ['sometimes', 'in:' . implode(',', self::$STATUS_OPTIONS)],
             'total_deductions' => ['sometimes', 'numeric'],
@@ -86,14 +86,9 @@ class Payslip extends Model
         return $this->belongsTo(Contract::class); 
     }
 
-    public function lines(): HasMany 
-    { 
-        return $this->hasMany(payslipLine::class); 
-    }
-
-    public function payslipLine(): HasMany
+   public function payslipLine(): HasMany
     {
-        return $this->lines();
+        return $this->hasMany(PayslipLine::class);
     }
 
 
