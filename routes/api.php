@@ -29,7 +29,7 @@ use Illuminate\Support\Facades\Route;
  */
 function resolveAbility(string $start_ability, string $end_ability)
 {
-    return 'can:' . $start_ability . '-' . $end_ability;
+    return 'can:' .$start_ability . '-' . $end_ability;
 }
 
 Route::prefix('title')->group(function () {

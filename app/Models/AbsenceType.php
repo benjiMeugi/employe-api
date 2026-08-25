@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
+use BenjiMeugi\Contracts\IModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class AbsenceType extends Model
+class AbsenceType extends Model implements IModel
 {
     /** @use HasFactory<\Database\Factories\EmployeFactory> */
     use HasFactory;

@@ -3,10 +3,11 @@
 namespace App\Models;
 
 use App\Models\Traits\BelongsToCareerEvent;
+use BenjiMeugi\Contracts\IModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Absence extends Model
+class Absence extends Model implements IModel
 {
     /** @use HasFactory<\Database\Factories\EmployeFactory> */
     use HasFactory;

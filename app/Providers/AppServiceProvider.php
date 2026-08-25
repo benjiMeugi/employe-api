@@ -11,17 +11,11 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         Relation::morphMap([
@@ -39,14 +33,16 @@ class AppServiceProvider extends ServiceProvider
                     ->toArray() ?? [];
             });
 
-            // Habileté jamais déclarée (ou déclarée mais sans aucun rôle
-            // associé) : ni explicitement autorisée ni refusée ici —
-            // Laravel continue sa logique normale.
             if (empty($allowedRoles)) {
                 return null;
             }
 
-            $userRoles = Auth::token()->resource_access->{'employe-api'}?->roles ?? [];
+            // Auth::token() renvoie une chaîne JSON brute, pas un objet
+            // déjà décodé — json_decode() est indispensable avant de
+            // pouvoir accéder à resource_access. Sans ça, ->resource_access
+            // sur une chaîne renvoie silencieusement null, jamais d'erreur.
+            $decodedToken = json_decode(Auth::token());
+            $userRoles = $decodedToken->resource_access->{'employe-api'}->roles ?? [];
 
             return count(array_intersect($userRoles, $allowedRoles)) > 0;
         });

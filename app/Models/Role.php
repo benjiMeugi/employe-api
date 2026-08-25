@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
+use BenjiMeugi\Contracts\IModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Role extends Model
+class Role extends Model implements IModel
 {
     /** @use HasFactory<\Database\Factories\RoleFactory> */
     use HasFactory;

@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use BenjiMeugi\Contracts\IModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
-class Ability extends Model
+class Ability extends Model implements IModel
 {
     /** @use HasFactory<\Database\Factories\AbilityFactory> */
     use HasFactory;

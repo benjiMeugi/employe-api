@@ -3,10 +3,11 @@
 namespace App\Models;
 
 use App\Services\KeycloakAdminService;
+use BenjiMeugi\Contracts\IModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Employe extends Model
+class Employe extends Model implements IModel
 {
     /** @use HasFactory<\Database\Factories\EmployeFactory> */
     use HasFactory;
