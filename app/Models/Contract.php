@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Contract extends Model 
+class Contract extends Model implements IModel
 {
     /** @use HasFactory<\Database\Factories\EmployeFactory> */
     use HasFactory;
@@ -76,14 +76,14 @@ class Contract extends Model
      */
     public $relation_methods = ['contractType', 'employe'];
 
-    public function contractType() 
+    public function ContractType() 
     { 
-        return $this->belongsTo(contractType::class);
+        return $this->belongsTo(ContractType::class);
     }
 
-    public function employe(): BelongsTo
+    public function Employe(): BelongsTo
     { 
-        return $this->belongsTo(employe::class, 'employee_id');
+        return $this->belongsTo(Employe::class, 'employee_id');
     }
 
 

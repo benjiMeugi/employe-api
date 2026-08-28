@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class ContractType extends Model
+class ContractType extends Model implements IModel
 {
     /** @use HasFactory<\Database\Factories\EmployeFactory> */
     use HasFactory;
@@ -66,7 +66,7 @@ class ContractType extends Model
 
     public function contracts() 
     { 
-        return $this->hasMany(contract::class); 
+        return $this->hasMany(Contract::class); 
     }
 
 }

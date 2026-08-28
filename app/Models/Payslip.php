@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use BenjiMeugi\Contracts\IModel;
 
 
-class Payslip extends Model 
-{ 
+
+class Payslip extends Model implements IModel{ 
     /** @use HasFactory<\Database\Factories\EmployeFactory> */
     use HasFactory;
 

@@ -65,6 +65,6 @@ class Position extends Model implements IModel
 
     public function classification()
     {
-        return $this->belongsTo(classification::class);
+        return $this->belongsTo(Classification::class);
     }
 }

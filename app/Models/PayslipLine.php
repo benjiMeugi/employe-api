@@ -4,8 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use BenjiMeugi\Contracts\IModel;
 
-class PayslipLine extends Model 
+
+class PayslipLine extends Model implements IModel
 {
     protected $fillable = ['payslip_id', 'payroll_line_type_id', 'calculation_base', 'rate', 'amount'];
 
@@ -56,11 +58,11 @@ class PayslipLine extends Model
 
     public function payslip(): BelongsTo 
     { 
-        return $this->belongsTo(payslip::class); 
+        return $this->belongsTo(Payslip::class); 
     }
 
     public function payrollLineType(): BelongsTo 
     { 
-        return $this->belongsTo(payrollLineType::class); 
+        return $this->belongsTo(PayrollLineType::class); 
     }
 }

@@ -66,17 +66,17 @@ class Classification extends Model implements IModel
 
     public function parent_level()
     {
-        return $this->belongsTo(classification::class, 'parent_id');
+        return $this->belongsTo(Classification::class, 'parent_id');
     }
 
     public function children()
     {
-        return $this->hasMany(classification::class, 'parent_id');
+        return $this->hasMany(Classification::class, 'parent_id');
     }
 
     public function positions()
     {
-        return $this->hasMany(position::class);
+        return $this->hasMany(Position::class);
     }
 
     public function payrollLineTypes()

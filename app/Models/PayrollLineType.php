@@ -5,7 +5,9 @@ namespace App\Models;
 use BenjiMeugi\Contracts\IModel;
 use Illuminate\Database\Eloquent\Model;
 
-class PayrollLineType extends Model 
+
+
+class PayrollLineType extends Model implements IModel
 {
     protected $fillable = ['code', 'label', 'nature', 'calculation_mode', 'is_taxable', 'is_subject_to_contributions', 'is_employer_contribution'];
     
@@ -68,6 +70,6 @@ class PayrollLineType extends Model
 
     public function payslipLines()
     {
-        return $this->hasMany(payslipLine::class);
+        return $this->hasMany(PayslipLine::class);
     }
 }
