@@ -3,25 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Repository\Repository;
-use App\Models\Classification;
+use App\Models\PayslipLine;
 use Illuminate\Http\Request;
 
-class ClassificationController extends Controller
+class PayslipLineController extends Controller
 {
-
     /**
-     * @var Classification
+     * @var PayslipLine
      */
-    private $model;
+    private PayslipLine $model;
 
     /**
      * @var Repository
      */
-    private $repository;
+    private Repository $repository;
 
     public function __construct()
     {
-        $this->model = new Classification();
+        $this->model = new PayslipLine();
         $this->repository = new Repository($this->model);
     }
 
@@ -51,7 +50,7 @@ class ClassificationController extends Controller
      * @param Request $request
      * @param int $id
      */
-    public function show(Request $request, $id)
+    public function show(Request $request, int $id)
     {
         return $this->repository->show($request, $id);
     }
@@ -66,7 +65,7 @@ class ClassificationController extends Controller
         $validator = $this->repository->check($request, $this->repository->rules());
         if (true !== $validator) {
             return $validator;
-        };
+        }
 
         return $this->respondOk($this->repository->store($request));
     }
@@ -77,12 +76,12 @@ class ClassificationController extends Controller
      * @param Request $request
      * @param int $id
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id)
     {
         $validator = $this->repository->check($request, $this->repository->update_rules(), $id);
         if (true !== $validator) {
             return $validator;
-        };
+        }
 
         return $this->respondOk($this->repository->update($request, $id));
     }
@@ -90,10 +89,11 @@ class ClassificationController extends Controller
     /**
      * Delete resource
      * 
+     * @param Request $request
      * @param int $id
      */
-    public function delete(Request $request, $id)
+    public function delete(Request $request, int $id)
     {
-        return $this->repository->delete($request, $id);
+        return $this->respondOk($this->repository->delete($request, $id));
     }
 }

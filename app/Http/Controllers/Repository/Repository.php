@@ -114,7 +114,7 @@ class Repository implements IRepository
      */
     public function store($request)
     {
-        return (new Parser())->store($request->all(), $this->model);
+        return (new Parser())->store($this->getRequestInput($request), $this->model);
     }
 
     /**
@@ -125,7 +125,7 @@ class Repository implements IRepository
      */
     public function update($request, $id)
     {
-        return (new Parser())->update($request->all(), $this->model, $id);
+        return (new Parser())->update($this->getRequestInput($request), $this->model, $id);
     }
 
     /**
@@ -135,6 +135,10 @@ class Repository implements IRepository
      */
     public function delete($request, $id)
     {
+        if ($this->model::find($id) === null) {
+            return $this->respondNotFound($id);
+        }
+
         return (new Parser())->delete($request->all(), $this->model, $id);
     }
 
@@ -147,16 +151,41 @@ class Repository implements IRepository
      */
     public function check($request, $rules = [], $id = null)
     {
-        $requestInput = is_array($request) ? $request : $request->all();
+        $requestInput = $this->getRequestInput($request);
         $requestInput = is_null($id) ? $requestInput : array_merge($requestInput, [$this->model->getKeyName() => $id]);
 
         $rules = $this->getRules($rules, $id);
+
+        if ($id !== null) {
+            $rules[$this->model->getKeyName()] = [
+                'exists:' . $this->model->getTable() . ',' . $this->model->getKeyName(),
+            ];
+        }
 
         $validator = Validator::make($requestInput, $rules);
         if ($validator->fails()) {
             return $this->respondBadRequest($validator->errors()->messages());
         }
         return true;
+    }
+
+    private function getRequestInput($request): array
+    {
+        if (is_array($request)) {
+            return $request;
+        }
+
+        $input = $request->all();
+        if ($input !== []) {
+            return $input;
+        }
+
+        $requestInput = $request->request->all();
+        if ($requestInput !== []) {
+            return $requestInput;
+        }
+
+        return $_POST !== [] ? $_POST : $request->json()->all();
     }
 
     /**

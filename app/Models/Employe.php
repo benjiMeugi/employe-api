@@ -6,6 +6,7 @@ use App\Services\KeycloakAdminService;
 use BenjiMeugi\Contracts\IModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Employe extends Model implements IModel
 {
@@ -63,8 +64,8 @@ class Employe extends Model implements IModel
             'phone_number1' => ['nullable',],
             'phone_number2' => ['nullable',],
             'title_id' => ['required', 'exists:' . (new Title)->getTable() . ',id'],
-            'classification_id' => ['required', 'exists:' . (new Classification)->getTable() . ',id'],
-            'position_id' => ['required', 'exists:' . (new Position)->getTable() . ',id']
+            'classification_id' => ['nullable', 'exists:' . (new Classification)->getTable() . ',id'],
+            'position_id' => ['nullable', 'exists:' . (new Position)->getTable() . ',id']
         ];
     }
 
@@ -74,26 +75,26 @@ class Employe extends Model implements IModel
     public function update_rules()
     {
         return [
-            'first_name' => ['sometimes'],
-            'last_name' => ['sometimes'],
+            'first_name' => ['sometimes', 'string', 'max:255'],
+            'last_name' => ['sometimes', 'string', 'max:255'],
             'birth_date' => ['sometimes', 'date'],
-            'gender' => ['sometimes'],
+            'gender' => ['sometimes', 'in:' . implode(',', self::$GENDER_OPTIONS)],
             'hire_date' => ['sometimes', 'date'],
-            'status' => ['sometimes'],
-            'professional_email' => ['sometimes'],
-            'personal_email' => ['sometimes', 'email'],
-            'phone_number1' => ['sometimes'],
-            'phone_number2' => ['sometimes'],
-            'title_id' => ['sometimes'],
-            'classification_id' => ['sometimes'],
-            'position_id' => ['sometimes']
+            'status' => ['sometimes', 'boolean'],
+            'professional_email' => ['sometimes', 'nullable', 'email'],
+            'personal_email' => ['sometimes', 'nullable', 'email'],
+            'phone_number1' => ['sometimes', 'nullable', 'string'],
+            'phone_number2' => ['sometimes', 'nullable', 'string'],
+            'title_id' => ['sometimes', 'exists:' . (new Title)->getTable() . ',id'],
+            'classification_id' => ['sometimes', 'nullable', 'exists:' . (new Classification)->getTable() . ',id'],
+            'position_id' => ['sometimes', 'nullable', 'exists:' . (new Position)->getTable() . ',id']
         ];
     }
 
     /**
      * Get the relation methods for the model.
      */
-    public $relation_methods = ['title', 'classification', 'position', 'careerEvent'];
+    public $relation_methods = ['title', 'classification', 'position', 'contracts', 'payslips', 'careerEvent'];
 
     public function title()
     {
@@ -113,6 +114,16 @@ class Employe extends Model implements IModel
     public function careerEvent()
     {
         return $this->hasMany(CareerEvent::class, 'employee_id');
+    }
+
+    public function contracts(): HasMany
+    {
+        return $this->hasMany(Contract::class, 'employee_id');
+    }
+
+    public function payslips(): HasMany
+    {
+        return $this->hasMany(Payslip::class, 'employee_id');
     }
 
     protected static function booted(): void
@@ -177,6 +188,5 @@ class Employe extends Model implements IModel
         });
 
     }
-
 
 }

@@ -7,6 +7,8 @@ use App\Http\Controllers\AbsenceTypeController;
 use App\Http\Controllers\AssignmentController;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\CareerEventController;
+use App\Http\Controllers\ContractController;
+use App\Http\Controllers\ContractTypeController;
 use App\Http\Controllers\ClassificationController;
 use App\Http\Controllers\DismissalController;
 use App\Http\Controllers\EmployeController;
@@ -15,6 +17,9 @@ use App\Http\Controllers\LeaveBalanceController;
 use App\Http\Controllers\LeaveGrantController;
 use App\Http\Controllers\OngoingAbsenceController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\PayrollLineTypeController;
+use App\Http\Controllers\PayslipController;
+use App\Http\Controllers\PayslipLineController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\PromotionController;
 use \App\Http\Controllers\RetirementController;
@@ -241,6 +246,51 @@ Route::middleware('auth:api')->group(function () {
             ->middleware(resolveAbility($startAbility, 'list'));
         Route::get('/employee/{employeeId}', [$controller, 'forEmployee'])
             ->middleware(resolveAbility($startAbility, 'list'));
+    });
+
+    Route::prefix('contracttype')->group(function () {
+        $controller = ContractTypeController::class;
+        $startAbility = 'contracttype';
+        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
+        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
+        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+    });
+
+    Route::prefix('contract')->group(function () {
+        $controller = ContractController::class;
+        $startAbility = 'contract';
+        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
+        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
+        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+    });
+
+    Route::prefix('payslip')->group(function () {
+        $controller = PayslipController::class;
+        $startAbility = 'payslip';
+        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
+        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
+        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+    });
+
+    Route::prefix('payslipLine')->group(function () {
+        $controller = PayslipLineController::class;
+        $startAbility = 'payslipLine';
+        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
+        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
+        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+    });
+
+    Route::prefix('payrollLineType')->group(function () {
+        $controller = PayrollLineTypeController::class;
+        $startAbility = 'payrollLineType';
+        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
+        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
+        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
     });
 
 // Volontairement en simple auth:api, sans resolveAbility — n'importe

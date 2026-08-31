@@ -15,7 +15,7 @@ trait ApiResponse
      */
     private function response($success, $code, $error_message = null, $errors = null, $response_data = null)
     {
-        return [
+        return response()->json([
             'success' => $success,
             'code' => $code,
             'body' => [
@@ -23,7 +23,7 @@ trait ApiResponse
                 'errors' => $errors,
                 'response_data' => $response_data,
             ]
-        ];
+        ], $code);
     }
 
     /**
@@ -55,6 +55,11 @@ trait ApiResponse
     protected function respondBadRequest($errors)
     {
         return $this->response(false, 422, null, $errors);
+    }
+
+    protected function respondNotFound($id)
+    {
+        return $this->response(false, 404, 'Resource not found: ' . $id);
     }
 
     /**

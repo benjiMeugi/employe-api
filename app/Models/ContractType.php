@@ -1,0 +1,72 @@
+<?php
+
+namespace App\Models;
+
+use BenjiMeugi\Contracts\IModel;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class ContractType extends Model implements IModel
+{
+    /** @use HasFactory<\Database\Factories\EmployeFactory> */
+    use HasFactory;
+
+        /**
+     * Fillable column of the related table
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'code',
+        'label',
+        'is_fixed_term',
+        'max_duration_months'
+    ];
+
+    /**
+     * Get the migrate key for the model.
+     */
+    public function getMigrateKey()
+    {
+        return $this->getForeignKey();
+    }
+
+
+    /**
+     * Get the validation rules for the model.
+     */
+    public function rules()
+    {
+        return [
+            'label' => ['required', 'max:255'],
+            'max_duration_months' => ['required', 'numeric'],
+            'is_fixed_term' => ['required', 'boolean'],
+            'code' => ['required', 'unique:' . $this->getTable(), 'max:255'],
+        ];
+    }
+
+    /**
+     * Get the validation rules for the model when updating.
+     */
+    public function update_rules()
+    {
+        return [
+            'label' => ['sometimes', 'string', 'max:255'],
+            'max_duration_months' => ['sometimes', 'nullable', 'numeric'],
+            'is_fixed_term' => ['sometimes', 'boolean'],
+            'code' => ['sometimes', 'required', IModel::IGNORE_RULE],
+        ];
+    }
+
+    /**
+     * Get the relation methods for the model.
+     */
+    public $relation_methods = ['contracts'];
+
+    public function contracts() 
+    { 
+        return $this->hasMany(Contract::class); 
+    }
+
+}

@@ -61,7 +61,7 @@ class Classification extends Model implements IModel
     /**
      * Get the relation methods for the model.
      */
-    public $relation_methods = ['parent_level', 'children', 'positions'];
+    public $relation_methods = ['parent_level', 'children', 'positions', 'payrollLineTypes'];
 
 
     public function parent_level()
@@ -77,5 +77,15 @@ class Classification extends Model implements IModel
     public function positions()
     {
         return $this->hasMany(Position::class);
+    }
+
+    public function payrollLineTypes()
+    {
+        return $this->belongsToMany(
+            PayrollLineType::class,
+            'classification_payroll_line_type',
+            'classification_id',
+            'payroll_line_type_id'
+        )->withPivot('value')->withTimestamps();
     }
 }

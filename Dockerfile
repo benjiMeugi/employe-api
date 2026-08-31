@@ -13,9 +13,14 @@ COPY --from=composer /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/employe-api
 
+# Use the already installed dependencies because the locked development
+# package is not currently downloadable from its GitHub commit.
+COPY composer.json composer.lock ./
+COPY vendor ./vendor
+
 # Le code est monté en volume par docker-compose (voir docker-compose.yml).
-# Rien à COPY ici : composer install se fait une fois, côté hôte, avant le
-# premier "docker compose up" (voir le README pour la marche à suivre).
+# Les dépendances restent dans un volume Docker dédié défini dans
+# docker-compose.yml.
 
 EXPOSE 9000
 CMD ["php-fpm"]
