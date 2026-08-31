@@ -4,10 +4,10 @@ namespace Database\Seeders;
 
 use App\Models\AbsenceType;
 use App\Models\Employe;
-use App\Models\LeaveCredit;
+use App\Models\LeaveGrant;
 use Illuminate\Database\Seeder;
 
-class LeaveCreditSeeder extends Seeder
+class LeaveGrantSeeder extends Seeder
 {
     public function run(): void
     {
@@ -16,7 +16,7 @@ class LeaveCreditSeeder extends Seeder
 
         if ($employees->isEmpty() || ! $congeAnnuel) {
             $this->command->warn(
-                'LeaveCreditSeeder: employés ou AbsenceType "CA" introuvables — ' .
+                'LeaveGrantSeeder: employés ou AbsenceType "CA" introuvables — ' .
                 'assure-toi que EmployeSeeder et AbsenceTypeSeeder tournent avant celui-ci.'
             );
             return;
@@ -24,7 +24,7 @@ class LeaveCreditSeeder extends Seeder
 
         foreach ($employees as $employee) {
             // Lot de l'année en cours
-            LeaveCredit::create([
+            LeaveGrant::create([
                 'employee_id' => $employee->id,
                 'absence_type_id' => $congeAnnuel->id,
                 'period' => '2026',
@@ -35,7 +35,7 @@ class LeaveCreditSeeder extends Seeder
 
             // Lot reporté de l'année précédente, sur quelques employés
             if (rand(0, 1)) {
-                LeaveCredit::create([
+                LeaveGrant::create([
                     'employee_id' => $employee->id,
                     'absence_type_id' => $congeAnnuel->id,
                     'period' => '2025 (reporté)',

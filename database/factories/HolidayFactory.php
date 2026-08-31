@@ -2,13 +2,13 @@
 
 namespace Database\Factories;
 
-use App\Models\LeaveCredit;
+use App\Models\Holiday;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<LeaveCredit>
+ * @extends Factory<Holiday>
  */
-class LeaveCreditFactory extends Factory
+class HolidayFactory extends Factory
 {
     /**
      * Define the model's default state.

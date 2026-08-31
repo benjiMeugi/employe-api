@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
             UnitSeeder::class,
             CareerEventSeeder::class,
             AbsenceTypeSeeder::class,
-            LeaveCreditSeeder::class,
+            LeaveGrantSeeder::class,
             AbsenceRequestSeeder::class,
             AbsenceSeeder::class,
             RoleAbilitySeeder::class,

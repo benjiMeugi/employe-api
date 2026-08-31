@@ -3,16 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Repository\Repository;
-use App\Models\LeaveCredit;
+use App\Models\Holiday;
 use Illuminate\Http\Request;
 
-class LeaveCreditController extends Controller
+class HolidayController extends Controller
 {
 
     /**
-     * @var LeaveCredit
+     * @var Holiday
      */
-    private LeaveCredit $model;
+    private Holiday $model;
 
     /**
      * @var Repository
@@ -21,7 +21,7 @@ class LeaveCreditController extends Controller
 
     public function __construct()
     {
-        $this->model = new LeaveCredit();
+        $this->model = new Holiday();
         $this->repository = new Repository($this->model);
     }
 

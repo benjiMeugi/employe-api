@@ -28,11 +28,11 @@ class RoleAbilitySeeder extends Seeder
      * des routes dédiées, storeForAbsence/storeForAbsenceRequest,
      * volontairement laissées hors de ce système pour l'instant).
      */
-    private array $catalogModules = ['title', 'position', 'classification', 'unit', 'absence_type'];
+    private array $catalogModules = ['title', 'position', 'classification', 'unit', 'absence_type', 'holiday'];
 
     private array $hrOnlyModules = [
         'employe', 'career_event', 'retirement', 'dismissal',
-        'sanction', 'promotion', 'leave_credit', 'attachment',
+        'sanction', 'promotion', 'leave_grant', 'attachment',
 
     ];
 

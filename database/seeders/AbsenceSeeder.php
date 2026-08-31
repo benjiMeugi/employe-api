@@ -6,7 +6,7 @@ use App\Models\Absence;
 use App\Models\AbsenceRequest;
 use App\Models\AbsenceType;
 use App\Models\Employe;
-use App\Models\LeaveCredit;
+use App\Models\LeaveGrant;
 use Illuminate\Database\Seeder;
 
 class AbsenceSeeder extends Seeder
@@ -16,7 +16,7 @@ class AbsenceSeeder extends Seeder
         $congeAnnuel = AbsenceType::where('code', 'CA')->first();
         $congeMaladie = AbsenceType::where('code', 'CM')->first();
         $approvedRequest = AbsenceRequest::where('status', 'approved')->first();
-        $leaveCredit = LeaveCredit::first();
+        $leaveCredit = LeaveGrant::first();
 
         if (! $congeAnnuel || ! $congeMaladie) {
             $this->command->warn(
