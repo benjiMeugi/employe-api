@@ -2,48 +2,40 @@
 
 namespace Database\Seeders;
 
-use App\Models\AbsenceType;
-use App\Models\Employe;
-use App\Models\LeaveGrant;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 
 class LeaveGrantSeeder extends Seeder
 {
+    /**
+     * Plutôt que d'inventer des octrois, on rejoue la vraie commande
+     * d'accumulation sur les 12 derniers mois. Deux avantages : les
+     * données de test correspondent exactement à ce que produira le
+     * job en conditions réelles, et ça teste la commande au passage.
+     *
+     * L'idempotence de leave_grants (unique employee/type/period)
+     * garantit qu'un jour parcouru deux fois ne crédite jamais deux fois.
+     */
     public function run(): void
     {
-        $employees = Employe::inRandomOrder()->take(5)->get();
-        $congeAnnuel = AbsenceType::where('code', 'CA')->first();
+        $start = Carbon::today()->subYear();
+        $today = Carbon::today();
 
-        if ($employees->isEmpty() || ! $congeAnnuel) {
-            $this->command->warn(
-                'LeaveGrantSeeder: employés ou AbsenceType "CA" introuvables — ' .
-                'assure-toi que EmployeSeeder et AbsenceTypeSeeder tournent avant celui-ci.'
-            );
-            return;
-        }
+        $this->command->info('Accumulation rejouée sur 12 mois...');
 
-        foreach ($employees as $employee) {
-            // Lot de l'année en cours
-            LeaveGrant::create([
-                'employee_id' => $employee->id,
-                'absence_type_id' => $congeAnnuel->id,
-                'period' => '2026',
-                'acquired_days' => 30,
-                'acquisition_date' => '2026-01-01',
-                'expiration_date' => '2027-03-31',
+        $cursor = $start->copy();
+
+        while ($cursor->lte($today)) {
+            Artisan::call('leave:accrue', [
+                '--date' => $cursor->toDateString(),
+                '--sync' => true,
             ]);
 
-            // Lot reporté de l'année précédente, sur quelques employés
-            if (rand(0, 1)) {
-                LeaveGrant::create([
-                    'employee_id' => $employee->id,
-                    'absence_type_id' => $congeAnnuel->id,
-                    'period' => '2025 (reporté)',
-                    'acquired_days' => rand(2, 8),
-                    'acquisition_date' => '2025-01-01',
-                    'expiration_date' => '2026-03-31',
-                ]);
-            }
+            $cursor->addDay();
         }
+
+        $count = \App\Models\LeaveGrant::count();
+        $this->command->info("{$count} octroi(s) créé(s).");
     }
 }

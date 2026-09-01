@@ -39,63 +39,94 @@ class Absence extends Model implements IModel
         'excess_is_deductible',
     ];
 
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date' => 'date',
+        'duration_days' => 'decimal:2',
+        'duration_hours' => 'decimal:2',
+        'deducted_days' => 'decimal:2',
+        'excess_is_deductible' => 'boolean',
+    ];
+
     /**
-     * Trois calculs à la création :
+     * Les mêmes règles qu'à la demande, appliquées sur saving et non sur
+     * creating : update_rules() autorise start_date et duration_* à
+     * changer, une correction doit donc recalculer ce qui en découle.
      *
-     * 1. end_date — pour les absences en jours seulement. Une permission
-     *    horaire commence et finit le même jour.
-     * 2. deducted_days — les jours imputés au congé annuel. Figé ici,
-     *    jamais recalculé : si quota_days change plus tard dans le
-     *    catalogue, ce qui a été prélevé reste ce qui a été prélevé.
+     * 1. Le type doit être ouvert à l'employé — sans ce contrôle, un RH
+     *    contournerait la restriction en créant l'absence directement,
+     *    et la ligne n'apparaîtrait dans aucune vue de solde.
+     * 2. end_date — la durée est saisie, la date de fin en découle
+     *    (jamais l'inverse). Une permission horaire commence et finit
+     *    le même jour : c'est duration_hours qui porte sa durée.
+     * 3. deducted_days — les jours imputés au congé annuel. Recalculé
+     *    si la durée change, mais jamais si seul le catalogue bouge :
+     *    ce qui a été prélevé reste ce qui a été prélevé.
      */
-    protected static function bootAbsence(): void
+    protected static function booted(): void
     {
-        static::creating(function (Absence $absence) {
+        static::saving(function (Absence $absence) {
+            $employeeId = $absence->employee_id ?? $absence->careerEvent?->employee_id;
+
             $type = AbsenceType::find($absence->absence_type_id);
+            $employee = $employeeId ? Employe::find($employeeId) : null;
 
-            if (! $type) {
-                return;
-            }
-
-            // Même contrôle qu'à la demande : sans lui, un RH pourrait
-            // contourner la restriction en créant l'absence directement.
-            $employee = Employe::find($absence->employee_id);
-
-            if ($employee && ! $type->isOpenTo($employee)) {
+            if ($type && $employee && ! $type->isOpenTo($employee)) {
                 throw new \RuntimeException(
                     "Le type d'absence « {$type->label} » n'est pas ouvert à cet employé."
                 );
             }
+        });
+
+        static::saving(function (Absence $absence) {
+            if (! $absence->isDirty(['start_date', 'duration_days', 'duration_hours', 'absence_type_id'])) {
+                return;
+            }
+
+            $type = AbsenceType::find($absence->absence_type_id);
+
+            if (! $type || ! $absence->start_date) {
+                return;
+            }
 
             if ($type->isHourly()) {
-                $absence->end_date = $absence->start_date;
                 $absence->duration_days = null;
-                $absence->deducted_days = 0;
+                $absence->end_date = $absence->start_date;
+
                 return;
             }
 
             $absence->duration_hours = null;
 
-            if ($absence->start_date && $absence->duration_days) {
+            if ($absence->duration_days) {
                 $absence->end_date = (new LeaveDaysCalculator())->computeEndDate(
                     $absence->start_date,
                     (float) $absence->duration_days,
                     $type
                 );
             }
+        });
 
-            $absence->deducted_days = self::computeDeductedDays($absence, $type);
+        static::saving(function (Absence $absence) {
+            if (! $absence->isDirty(['duration_days', 'absence_type_id', 'excess_is_deductible'])) {
+                return;
+            }
+
+            if ($type = AbsenceType::find($absence->absence_type_id)) {
+                $absence->deducted_days = self::computeDeductedDays($absence, $type);
+            }
         });
     }
 
     /**
      * L'excédent au-delà du quota, s'il a été déclaré déductible par
      * le RH. Le congé annuel ne prélève jamais sur lui-même : sa
-     * consommation est déjà comptée directement.
+     * consommation est déjà comptée directement. Une permission
+     * horaire ne consomme aucun solde.
      */
     private static function computeDeductedDays(Absence $absence, AbsenceType $type): float
     {
-        if ($type->isAccruing()) {
+        if ($type->isHourly() || $type->isAccruing()) {
             return 0;
         }
 
@@ -127,8 +158,8 @@ class Absence extends Model implements IModel
             'absence_type_id' => ['required', 'exists:' . (new AbsenceType)->getTable() . ',id'],
             'absence_request_id' => ['nullable', 'exists:' . (new AbsenceRequest)->getTable() . ',id'],
             'start_date' => ['required', 'date'],
-            'duration_days' => ['required_without:duration_hours', 'nullable', 'integer', 'min:1'],
-            'duration_hours' => ['required_without:duration_days', 'nullable', 'integer', 'min:1'],
+            'duration_days' => ['required_without:duration_hours', 'nullable', 'numeric', 'min:0.5'],
+            'duration_hours' => ['required_without:duration_days', 'nullable', 'numeric', 'min:0.5'],
             'excess_is_deductible' => ['required', 'boolean'],
         ]);
     }
@@ -140,8 +171,8 @@ class Absence extends Model implements IModel
     {
         return [
             'start_date' => ['sometimes', 'date'],
-            'duration_days' => ['sometimes', 'nullable', 'integer', 'min:1'],
-            'duration_hours' => ['sometimes', 'nullable', 'integer', 'min:1'],
+            'duration_days' => ['sometimes', 'nullable', 'numeric', 'min:0.5'],
+            'duration_hours' => ['sometimes', 'nullable', 'numeric', 'min:0.5'],
             'excess_is_deductible' => ['sometimes', 'boolean'],
         ];
     }

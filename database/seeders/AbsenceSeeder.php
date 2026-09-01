@@ -33,10 +33,8 @@ class AbsenceSeeder extends Seeder
                 'absence_type_id' => $congeAnnuel->id,
                 'start_date' => $approvedRequest->requested_start_date,
                 'end_date' => $approvedRequest->requested_end_date,
-                'days_count' => $approvedRequest->requested_days_count,
+                'duration_days' => $approvedRequest->requested_days_count,
                 'absence_request_id' => $approvedRequest->id,
-                'leave_credit_id' => $leaveCredit?->id,
-                'is_deductible' => true,
             ]);
         }
 
@@ -48,10 +46,8 @@ class AbsenceSeeder extends Seeder
                 'absence_type_id' => $congeMaladie->id,
                 'start_date' => now()->subDays(10)->toDateString(),
                 'end_date' => now()->subDays(8)->toDateString(),
-                'days_count' => 2,
+                'duration_days' => 2,
                 'absence_request_id' => null,
-                'leave_credit_id' => null,
-                'is_deductible' => false, // congé maladie, pas décompté du solde congé annuel
             ]);
         }
     }

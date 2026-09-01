@@ -23,7 +23,7 @@ trait BelongsToCareerEvent
             $careerEvent = CareerEvent::create([
                 'employee_id' => $model->employee_id,
                 'event_date' => $model->event_date ?? now()->toDateString(),
-                'user_id' => auth()->id(),
+                'user_id' => app()->runningInConsole()? null: auth()->id(),
                 'event' => Str::snake(class_basename($model)),
             ]);
 

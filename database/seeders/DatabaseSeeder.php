@@ -34,6 +34,8 @@ class DatabaseSeeder extends Seeder
             AbsenceRequestSeeder::class,
             AbsenceSeeder::class,
             RoleAbilitySeeder::class,
+            ContractTypeSeeder::class,
+            ContractSeeder::class,
         ]);
     }
 }

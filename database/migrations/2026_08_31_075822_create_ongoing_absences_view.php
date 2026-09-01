@@ -18,23 +18,36 @@ return new class extends Migration
      */
     public function up(): void
     {
+
+        DB::statement('DROP VIEW IF EXISTS ongoing_absences');
+
         DB::statement("
             CREATE VIEW ongoing_absences AS
-            SELECT
-                a.id AS absence_id,
-                ce.employee_id,
-                a.absence_type_id,
-                a.start_date,
-                a.end_date,
-                a.duration_days AS total_days,
-                DATEDIFF(CURDATE(), a.start_date) + 1 AS elapsed_days,
-                DATEDIFF(a.end_date, CURDATE()) AS remaining_days,
-                DATE_ADD(a.end_date, INTERVAL 1 DAY) AS return_date
-            FROM absences a
-            INNER JOIN career_events ce ON ce.id = a.id
-            WHERE a.duration_days IS NOT NULL
-              AND a.start_date <= CURDATE()
-              AND a.end_date >= CURDATE()
+                SELECT
+                    a.id AS absence_id,
+                    ce.employee_id,
+                    a.absence_type_id,
+                    a.start_date,
+                    a.end_date,
+                    a.duration_days AS total_days,
+
+                    CASE WHEN a.start_date > CURDATE() THEN 'Planned'
+                         ELSE 'InProgress' END AS progress_status,
+
+                    GREATEST(DATEDIFF(a.start_date, CURDATE()), 0)      AS days_until_start,
+                    GREATEST(DATEDIFF(CURDATE(), a.start_date) + 1, 0)  AS elapsed_days,
+
+                    DATEDIFF(
+                        a.end_date,
+                        GREATEST(CURDATE(), DATE_SUB(a.start_date, INTERVAL 1 DAY))
+                    ) AS remaining_days,
+
+                    DATE_ADD(a.end_date, INTERVAL 1 DAY) AS return_date
+
+                FROM absences a
+                INNER JOIN career_events ce ON ce.id = a.id
+                WHERE a.duration_days IS NOT NULL
+                  AND a.end_date >= CURDATE()
         ");
     }
 

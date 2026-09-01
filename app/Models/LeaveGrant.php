@@ -21,7 +21,7 @@ class LeaveGrant extends Model implements IModel
         'absence_type_id',
         'period',
         'granted_days',
-        'granted_date',
+        'grant_date',
     ];
 
     /**
@@ -43,7 +43,7 @@ class LeaveGrant extends Model implements IModel
             'absence_type_id' => ['required', 'exists:' . (new AbsenceType)->getTable() . ',id'],
             'period' => ['required', 'max:255'],
             'granted_days' => ['required', 'numeric'],
-            'granted_date' => ['required', "date"],
+            'grant_date' => ['required', "date"],
         ];
     }
 
@@ -57,7 +57,7 @@ class LeaveGrant extends Model implements IModel
             'absence_type_id' => ['sometimes', 'exists:' . (new AbsenceType)->getTable() . ',id'],
             'period' => ['sometimes', 'max:255'],
             'granted_days' => ['sometimes', 'numeric'],
-            'granted_date' => ['sometimes', "date"],
+            'grant_date' => ['sometimes', "date"],
         ];
     }
 

@@ -33,8 +33,11 @@ class RoleAbilitySeeder extends Seeder
     private array $hrOnlyModules = [
         'employe', 'career_event', 'retirement', 'dismissal',
         'sanction', 'promotion', 'leave_grant', 'attachment',
-
+        'contract', 'absence'
     ];
+
+    private array $hrAndEmployees = ['absence_request'];
+    private array $catalogviews = ['leave_balance', 'ongoing_absence'];
 
 
     public function run(): void
@@ -60,11 +63,28 @@ class RoleAbilitySeeder extends Seeder
             $this->grant($employee, "{$module}-list");
         }
 
+        foreach ($this->catalogviews as $view) {
+            $this->grant($hrManager, "{$view}-list");
+            $this->grant($hrManager, "{$view}-current");
+
+            $this->grant($employee, "{$view}-current");
+        }
+
         foreach ($this->hrOnlyModules as $module) {
             $this->grant($hrManager, "{$module}-list");
             $this->grant($hrManager, "{$module}-create");
             $this->grant($hrManager, "{$module}-update");
             $this->grant($hrManager, "{$module}-delete");
+        }
+
+        foreach ($this->hrAndEmployees as $module) {
+            $this->grant($hrManager, "{$module}-list");
+            $this->grant($hrManager, "{$module}-create");
+            $this->grant($hrManager, "{$module}-update");
+            $this->grant($hrManager, "{$module}-delete");
+
+            $this->grant($employee, "{$module}-list");
+            $this->grant($employee, "{$module}-create");
         }
 
         // career_event n'a pas de create/update (voir routes/api.php)
