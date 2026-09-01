@@ -11,6 +11,36 @@ return new class extends Migration
      * de solde, leur droit naît à l'événement.
      *
      * ─────────────────────────────────────────────────────────────
+     * LES COLONNES : UN TRIO, PUIS DU DÉTAIL
+     *
+     * Trois colonnes se lisent ensemble et s'additionnent, quel que
+     * soit le régime du type :
+     *
+     *   acquired_days − consumed_days = balance
+     *
+     *   acquired_days   ce à quoi l'employé a droit AUJOURD'HUI.
+     *                   Pour un type accumulé : les octrois encore
+     *                   valides. Les octrois expirés n'y sont pas.
+     *   consumed_days   ce qu'il a pris SUR CE DROIT-LÀ. Absences du
+     *                   type et excédents imputés depuis les autres.
+     *   balance         ce qui reste utilisable.
+     *
+     * Les quatre suivantes sont du détail de période. Elles ne
+     * rentrent PAS dans la soustraction ci-dessus et portent toutes
+     * le suffixe _this_year pour qu'on ne les confonde pas :
+     *
+     *   consumed_this_year      pris depuis le début de l'année
+     *                           d'acquisition en cours.
+     *   imputed_this_year       reçu des autres types cette année.
+     *   transferred_this_year   envoyé vers le congé accumulé.
+     *   expired_this_year       perdu faute d'avoir été pris.
+     *
+     * Pourquoi consumed_days diffère de consumed_this_year : un
+     * employé qui a pris 12 jours dont 10 sur des octrois désormais
+     * expirés n'a entamé que 2 jours de son droit actuel. Les deux
+     * chiffres sont vrais, ils répondent à deux questions.
+     *
+     * ─────────────────────────────────────────────────────────────
      * TROIS RÉGIMES
      *
      *   accrual_rate_per_month > 0   le droit vient des LeaveGrant.
@@ -21,7 +51,7 @@ return new class extends Migration
      * absorbe la générosité du RH : un excédent non déductible élève
      * l'acquis au niveau du consommé plutôt que de creuser le solde.
      * L'excédent déductible part dans deducted_days et se retrouve en
-     * consumed_from_other_types sur le congé accumulé.
+     * imputed_this_year sur le congé accumulé.
      *
      * Les types non accumulés se lisent sur l'année d'acquisition en
      * cours, ancrée sur la date d'effet du contrat actif et bornée des
@@ -41,7 +71,7 @@ return new class extends Migration
      * sans une table de liaison. Il n'est pas nécessaire : seul le
      * total perdu à l'expiration manque pour boucler le calcul.
      *
-     *   disponible = total octroyé − total consommé − perte cumulée
+     *   balance = total octroyé − total consommé − perte cumulée
      *
      * Et la perte cumulée s'obtient sans récursion. À chaque date
      * d'expiration e, la perte de l'instant vaut l'offre morte à cette
@@ -56,18 +86,9 @@ return new class extends Migration
      * donc elles empêchent la perte de se déclencher à tort sur les
      * jours qu'elles ont réellement consommés.
      *
-     * La demande porte les absences propres au type ET les excédents
-     * imputés depuis les autres types : les deux puisent au même
-     * réservoir.
-     *
-     * ─────────────────────────────────────────────────────────────
-     * EXPIRÉ AFFICHÉ
-     *
-     * expired_days ne montre que ce qui a été perdu PENDANT l'année
-     * d'acquisition en cours : la perte cumulée à ce jour moins celle
-     * arrêtée au début de l'année. Ce qui a expiré les années
-     * précédentes reste dans le calcul du solde, mais n'encombre plus
-     * l'affichage.
+     * consumed_days se déduit ensuite du solde plutôt que d'être
+     * compté à part : c'est la seule façon de garantir que la
+     * soustraction affichée tombe juste.
      *
      * ─────────────────────────────────────────────────────────────
      * Requiert MySQL 8.0 (CTE + fonctions de fenêtrage).
@@ -168,8 +189,8 @@ return new class extends Migration
                 SELECT
                     l.employee_id,
                     l.absence_type_id,
-                    COALESCE(MAX(CASE WHEN l.e <= CURDATE()      THEN l.lost_cumulative END), 0) AS lost_to_date,
-                    COALESCE(MAX(CASE WHEN l.e <  an.year_start  THEN l.lost_cumulative END), 0) AS lost_before_year
+                    COALESCE(MAX(CASE WHEN l.e <= CURDATE()     THEN l.lost_cumulative END), 0) AS lost_to_date,
+                    COALESCE(MAX(CASE WHEN l.e <  an.year_start THEN l.lost_cumulative END), 0) AS lost_before_year
                 FROM loss l
                 INNER JOIN anchor an ON an.employee_id = l.employee_id
                 GROUP BY l.employee_id, l.absence_type_id
@@ -237,6 +258,8 @@ return new class extends Migration
 
                 COALESCE(ys.occurrence_count, 0) AS occurrence_count,
 
+                /* ── LE TRIO QUI S'ADDITIONNE ────────────────────── */
+
                 CASE
                     WHEN at.accrual_rate_per_month > 0
                         THEN COALESCE(gt.granted_alive, 0)
@@ -248,26 +271,16 @@ return new class extends Migration
                     ELSE GREATEST(at.quota_days, COALESCE(ys.consumed_year, 0))
                 END AS acquired_days,
 
-                COALESCE(ys.consumed_year, 0) AS consumed_own_type,
-
-                CASE
-                    WHEN at.accrual_rate_per_month > 0 THEN COALESCE(yi.imputed_year, 0)
-                    ELSE 0
-                END AS consumed_from_other_types,
-
-                COALESCE(ys.consumed_year, 0)
-                    + CASE
-                        WHEN at.accrual_rate_per_month > 0 THEN COALESCE(yi.imputed_year, 0)
-                        ELSE 0
-                      END AS consumed_total,
-
-                COALESCE(ys.transferred, 0) AS transferred_to_annual_leave,
-
+                -- Déduit du solde plutôt que compté à part : c'est ce
+                -- qui garantit que la soustraction tombe juste.
                 CASE
                     WHEN at.accrual_rate_per_month > 0
-                        THEN GREATEST(0, COALESCE(ls.lost_to_date, 0) - COALESCE(ls.lost_before_year, 0))
-                    ELSE 0
-                END AS expired_days,
+                        THEN COALESCE(gt.granted_alive, 0)
+                             - (COALESCE(gt.granted_ever, 0)
+                                - COALESCE(dt.consumed_ever, 0)
+                                - COALESCE(ls.lost_to_date, 0))
+                    ELSE COALESCE(ys.consumed_year, 0)
+                END AS consumed_days,
 
                 CASE
                     WHEN at.accrual_rate_per_month > 0
@@ -281,7 +294,24 @@ return new class extends Migration
                              ) - COALESCE(ys.consumed_year, 0)
                     ELSE GREATEST(at.quota_days, COALESCE(ys.consumed_year, 0))
                          - COALESCE(ys.consumed_year, 0)
-                END AS balance
+                END AS balance,
+
+                /* ── LE DÉTAIL DE LA PÉRIODE ─────────────────────── */
+
+                COALESCE(ys.consumed_year, 0) AS consumed_this_year,
+
+                CASE
+                    WHEN at.accrual_rate_per_month > 0 THEN COALESCE(yi.imputed_year, 0)
+                    ELSE 0
+                END AS imputed_this_year,
+
+                COALESCE(ys.transferred, 0) AS transferred_this_year,
+
+                CASE
+                    WHEN at.accrual_rate_per_month > 0
+                        THEN GREATEST(0, COALESCE(ls.lost_to_date, 0) - COALESCE(ls.lost_before_year, 0))
+                    ELSE 0
+                END AS expired_this_year
 
             FROM employes e
             CROSS JOIN absence_types at

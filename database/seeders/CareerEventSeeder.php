@@ -8,67 +8,131 @@ use App\Models\Position;
 use App\Models\Promotion;
 use App\Models\Retirement;
 use App\Models\Sanction;
-use App\Models\Unit;
 use Illuminate\Database\Seeder;
 
 class CareerEventSeeder extends Seeder
 {
     public function run(): void
     {
-        $employees = Employe::inRandomOrder()->take(5)->get();
-        $positions = Position::inRandomOrder()->take(3)->get();
-        $units = Unit::inRandomOrder()->take(3)->get();
+        $employees = Employe::query()
+            ->orderBy('id')
+            ->take(8)
+            ->get();
 
-        if ($employees->isEmpty() || $positions->isEmpty() || $units->isEmpty()) {
+        $positions = Position::all();
+
+        if ($employees->isEmpty() || $positions->count() < 2) {
             $this->command->warn(
-                'CareerEventSeeder: employés/postes/unités introuvables — ' .
-                'assure-toi que EmployeSeeder, PositionSeeder et UnitSeeder tournent avant celui-ci.'
+                'CareerEventSeeder: employés ou positions introuvables.'
             );
+
             return;
         }
 
-        foreach ($employees as $employee) {
-            // Le trait BelongsToCareerEvent crée automatiquement la ligne
-            // career_events correspondante — plus besoin de le faire à la main.
+        /*
+         * ============================================================
+         * PROMOTIONS
+         * ============================================================
+         *
+         * Pour chaque employé sélectionné :
+         *
+         * ancienne position
+         *        ↓
+         * nouvelle position = position actuelle de l'employé
+         *
+         * Cela permet de conserver une histoire cohérente.
+         */
+
+        foreach ($employees->take(5) as $employee) {
+
+            $currentPosition = $employee->position;
+
+            if (! $currentPosition) {
+                continue;
+            }
+
+            $previousPosition = $positions
+                ->where('id', '!=', $currentPosition->id)
+                ->random();
+
             Promotion::create([
                 'employee_id' => $employee->id,
-                'event_date' => now()->subMonths(rand(1, 24)),
-                'previous_position_id' => $positions->random()->id,
-                'new_position_id' => $positions->random()->id,
-                'previous_classification_id' => null,
-                'new_classification_id' => null,
+                'event_date' => now()->subMonths(rand(6, 24)),
+                'previous_position_id' => $previousPosition->id,
+                'new_position_id' => $currentPosition->id,
+                'previous_classification_id' => $previousPosition->classification_id,
+                'new_classification_id' => $currentPosition->classification_id,
                 'reason' => 'Évolution de carrière',
             ]);
-
-            // Une sanction, pas systématique
-            if (rand(0, 1)) {
-                Sanction::create([
-                    'employee_id' => $employee->id,
-                    'event_date' => now()->subMonths(rand(1, 12)),
-                    'sanction_type' => collect(['Warning', 'Suspension', 'Demotion'])->random(),
-                    'reason' => 'Retards répétés',
-                    'duration_days' => rand(1, 5),
-                ]);
-            }
         }
 
-        // Une retraite et un licenciement, sur deux employés distincts
-        if ($employees->count() >= 2) {
+        /*
+         * ============================================================
+         * SANCTIONS
+         * ============================================================
+         */
+
+        foreach ($employees->take(4) as $employee) {
+
+            Sanction::create([
+                'employee_id' => $employee->id,
+                'event_date' => now()->subMonths(rand(1, 12)),
+                'sanction_type' => collect([
+                    'Warning',
+                    'Suspension',
+                    'Demotion',
+                ])->random(),
+                'reason' => 'Retards répétés',
+                'duration_days' => rand(1, 5),
+            ]);
+        }
+
+        /*
+         * ============================================================
+         * RETRAITE
+         * ============================================================
+         *
+         * Un seul employé.
+         */
+
+        if ($employees->count() >= 1) {
+
+            $employee = $employees[0];
+
             Retirement::create([
-                'employee_id' => $employees[0]->id,
+                'employee_id' => $employee->id,
                 'event_date' => now()->subMonths(2),
-                'effective_date' => now()->addMonths(1),
+                'effective_date' => now()->addMonth(),
                 'reason' => 'Départ à la retraite',
             ]);
+        }
+
+        /*
+         * ============================================================
+         * LICENCIEMENT
+         * ============================================================
+         *
+         * Employé différent de celui de la retraite.
+         */
+
+        if ($employees->count() >= 2) {
+
+            $employee = $employees[1];
+
+            $eventDate = now()->subMonths(3);
 
             Dismissal::create([
-                'employee_id' => $employees[1]->id,
-                'event_date' => now()->subMonths(3),
+                'employee_id' => $employee->id,
+                'event_date' => $eventDate,
                 'reason' => 'Faute grave',
-                'effective_date' => now()->subMonths(3),
+                'effective_date' => $eventDate,
                 'severance_pay' => 500000,
                 'notice_days' => 0,
             ]);
         }
+
+        $this->command->info(
+            'Événements de carrière créés avec succès.'
+        );
     }
 }

@@ -26,16 +26,22 @@ class DatabaseSeeder extends Seeder
             TitleSeeder::class,
             ClassificationSeeder::class,
             PositionSeeder::class,
+            ContractTypeSeeder::class,
+
             EmployeSeeder::class,
+            ContractSeeder::class,
+
             UnitSeeder::class,
+
+            AssignmentSeeder::class,
             CareerEventSeeder::class,
+
             AbsenceTypeSeeder::class,
             LeaveGrantSeeder::class,
             AbsenceRequestSeeder::class,
             AbsenceSeeder::class,
+
             RoleAbilitySeeder::class,
-            ContractTypeSeeder::class,
-            ContractSeeder::class,
         ]);
     }
 }

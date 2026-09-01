@@ -12,7 +12,7 @@ class ContractType extends Model implements IModel
     /** @use HasFactory<\Database\Factories\EmployeFactory> */
     use HasFactory;
 
-        /**
+    /**
      * Fillable column of the related table
      *
      * @var array
@@ -64,9 +64,9 @@ class ContractType extends Model implements IModel
      */
     public $relation_methods = ['contracts'];
 
-    public function contracts() 
-    { 
-        return $this->hasMany(Contract::class); 
+    public function contracts()
+    {
+        return $this->hasMany(Contract::class);
     }
 
 }

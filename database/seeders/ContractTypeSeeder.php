@@ -43,12 +43,12 @@ class ContractTypeSeeder extends Seeder
         ];
 
         foreach ($types as $type) {
-            ContractType::firstOrCreate(
+            ContractType::updateOrCreate(
                 ['code' => $type['code']],
                 $type
             );
         }
 
-        $this->command->info('Types de contrat créés avec succès');
+        $this->command->info('Types de contrat créés avec succès.');
     }
 }
