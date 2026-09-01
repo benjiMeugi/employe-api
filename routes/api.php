@@ -26,6 +26,7 @@ use \App\Http\Controllers\RetirementController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SanctionController;
 use App\Http\Controllers\TitleController;
+use App\Http\Controllers\UnitAbsenceScheduleController;
 use App\Http\Controllers\UnitController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -246,6 +247,32 @@ Route::middleware('auth:api')->group(function () {
             ->middleware(resolveAbility($startAbility, 'list'));
         Route::get('/employee/{employeeId}', [$controller, 'forEmployee'])
             ->middleware(resolveAbility($startAbility, 'list'));
+    });
+
+    Route::prefix('unit_absence_schedule')->group(function () {
+        $controller = UnitAbsenceScheduleController::class;
+        $startAbility = 'unit_absence_schedule';
+
+        // La liste brute, filtrable via query_ — outillage plutôt
+        // qu'écran : le RH passe par les deux routes suivantes.
+        Route::get('/', [$controller, 'index'])
+            ->middleware(resolveAbility($startAbility, 'list'));
+
+        // L'effectif de chaque unité active. Peuple le sélecteur
+        // d'unité côté frontend en un seul appel.
+        Route::get('/staffing', [$controller, 'staffing'])
+            ->middleware(resolveAbility($startAbility, 'list'));
+
+        // Le calendrier d'une unité : les bandes à dessiner.
+        //   ?from=2026-09-01&to=2026-09-30
+        Route::get('/unit/{unitId}', [$controller, 'forUnit'])
+            ->middleware(resolveAbility($startAbility, 'list'));
+
+        // L'arbitrage : effectif, absents jour par jour, pic, et ce
+        // que deviendrait la période si toutes les demandes en
+        // attente étaient approuvées.
+        Route::get('/unit/{unitId}/coverage', [$controller, 'coverage'])
+            ->middleware(resolveAbility($startAbility, 'coverage'));
     });
 
     Route::prefix('contracttype')->group(function () {

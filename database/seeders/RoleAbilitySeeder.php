@@ -39,6 +39,9 @@ class RoleAbilitySeeder extends Seeder
     private array $hrAndEmployees = ['absence_request'];
     private array $catalogviews = ['leave_balance', 'ongoing_absence'];
 
+    private string $unitAbsenceScheduleView = 'unit_absence_schedule';
+
+
 
     public function run(): void
     {
@@ -69,6 +72,9 @@ class RoleAbilitySeeder extends Seeder
 
             $this->grant($employee, "{$view}-current");
         }
+
+        $this->grant($hrManager, "{$this->unitAbsenceScheduleView}-list");
+        $this->grant($hrManager, "{$this->unitAbsenceScheduleView}-coverage");
 
         foreach ($this->hrOnlyModules as $module) {
             $this->grant($hrManager, "{$module}-list");
