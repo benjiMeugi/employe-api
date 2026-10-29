@@ -29,12 +29,8 @@ class SanctionController extends Controller
      *
      * @param Request $request
      */
-    public function index(Request $request, $id = null)
+    public function index(Request $request)
     {
-        if ($id !== null) {
-            return $this->show($request, $id);
-        }
-
         $query = $this->repository->parse_filters($request);
 
         // return response

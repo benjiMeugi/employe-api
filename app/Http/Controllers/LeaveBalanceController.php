@@ -69,7 +69,13 @@ class LeaveBalanceController extends Controller
      */
     public function current(Request $request)
     {
-        $userId = json_decode(\Illuminate\Support\Facades\Auth::token())->sub ?? null;
+        $authUser = $request->input('auth_user');
+
+        if (is_object($authUser)) {
+            $authUser = (array) $authUser;
+        }
+
+        $userId = $authUser['id'] ?? $authUser['sub'] ?? $authUser['user_id'] ?? null;
 
         $employee = \App\Models\Employe::where('user_id', $userId)->first();
 

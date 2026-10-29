@@ -2,37 +2,51 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Ability;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class PermissionController extends Controller
 {
     /**
-     * Renvoie les droits d'accès du user connecté : ses rôles Keycloak
-     * (client employe-api) et ses habiletés effectives — dérivées de
-     * la table Ability/Role, exactement comme Gate::before() les
-     * calcule pour les vraies décisions d'autorisation. Le frontend
-     * peut s'appuyer là-dessus pour savoir quoi afficher/masquer.
-     *
-     * Volontairement pas d'informations personnelles ici (nom complet,
-     * coordonnées...) — uniquement ce qui concerne les droits d'accès.
-     * L'identifiant technique (sub) reste présent, comme référence
-     * strictement nécessaire pour corréler avec d'autres appels.
+     * Renvoie les droits d'accès du user connecté depuis auth_user injecté par VerifyAuthApiToken
      */
-    public function show()
+    public function show(Request $request)
     {
-        $token = Auth::token();
+        $authUser = $request->input('auth_user');
 
-        $roles = $token->resource_access->{'employe-api'}?->roles ?? [];
+        if (is_object($authUser)) {
+            $authUser = (array) $authUser;
+        }
 
-        $abilities = Ability::whereHas('roles', function ($query) use ($roles) {
-            $query->whereIn('label', $roles);
-        })->pluck('label')->unique()->values();
+        if (!is_array($authUser)) {
+            return response()->json(['message' => 'Token manquant'], 401);
+        }
+
+        $roles = $authUser['roles'] ?? $authUser['role'] ?? [];
+        if (is_string($roles)) {
+            $roles = [$roles];
+        }
+        if (!is_array($roles)) {
+            $roles = [];
+        }
+
+        $permissions = $authUser['permissions'] ?? $authUser['abilities'] ?? [];
+        if (!is_array($permissions)) {
+            $permissions = [];
+        }
+
+        $roles = array_values(array_unique($roles));
+        $permissions = array_values(array_unique($permissions));
 
         return $this->respondOk([
-            'sub' => $token->sub ?? null,
+            'user' => $authUser,
             'roles' => $roles,
-            'abilities' => $abilities,
+            'permissions' => $permissions,
+            'abilities' => $permissions,
         ]);
+    }
+
+    public function me(Request $request)
+    {
+        return $this->show($request);
     }
 }
