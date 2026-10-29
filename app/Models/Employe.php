@@ -2,7 +2,8 @@
 
 namespace App\Models;
 
-use App\Services\KeycloakAdminService;
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Services\AuthApiService;
 use BenjiMeugi\Contracts\IModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -61,8 +62,8 @@ class Employe extends Model implements IModel
             'status' => ['required', 'boolean'],
             'professional_email' => ['nullable', 'email', 'unique:' . $this->getTable(), 'max:255'],
             'personal_email' => ['nullable', 'email', 'unique:' . $this->getTable(), 'max:255'],
-            'phone_number1' => ['nullable',],
-            'phone_number2' => ['nullable',],
+            'phone_number1' => ['nullable'],
+            'phone_number2' => ['nullable'],
             'title_id' => ['required', 'exists:' . (new Title)->getTable() . ',id'],
             'classification_id' => ['nullable', 'exists:' . (new Classification)->getTable() . ',id'],
             'position_id' => ['nullable', 'exists:' . (new Position)->getTable() . ',id']
@@ -128,65 +129,51 @@ class Employe extends Model implements IModel
 
     protected static function booted(): void
     {
-        /**
-         * Provisionne automatiquement le compte Keycloak dès la création
-         * de l'employé — déclenché ici, pas dans le contrôleur, pour que
-         * ce soit vrai peu importe le chemin emprunté (API, tinker, seeder...).
-         *
-         * Si aucun professional_email n'est fourni, le compte n'est
-         * simplement pas créé (user_id reste null) — pas une erreur, un état
-         * légitime pour un employé pas encore prêt à recevoir un accès.
-         *
-         * ⚠️ Couplage volontairement fort : si l'appel à Keycloak échoue
-         * (service indisponible...), la création de l'employé échoue aussi
-         * — cohérent avec "automatique et immédiat, sans étape intermédiaire",
-         * mais à garder en tête si Keycloak devient un point de fragilité.
-         */
-
+        // Création d'un utilisateur dans l'API d'authentification à la création d'un employé
         static::creating(function (Employe $employee) {
             if (! $employee->professional_email) {
                 return;
             }
 
-            $userId = (new KeycloakAdminService())->createUser(
-                username: $employee->professional_email, // = email, cohérent avec
-                // "Email as username" activé
-                // sur le realm — plus besoin
-                // de retenir un matricule.
-                email: $employee->professional_email,
-                firstName: $employee->first_name,
-                lastName: $employee->last_name,
-            );
+            try {
+                $userId = (new AuthApiService())->createUser(
+                    username: $employee->professional_email,
+                    email: $employee->professional_email,
+                    firstName: $employee->first_name,
+                    lastName: $employee->last_name,
+                );
 
-            // Assignation directe, pas via $fillable — jamais fourni par
-            // le client, toujours déterminé ici.
-            $employee->user_id = $userId;
+                // Affectation directe (non mass assignable)
+                $employee->user_id = $userId;
+            } catch (\Throwable $e) {
+                throw $e;
+            }
         });
 
-        /**
-         * Synchronise l'état du compte Keycloak avec status : un employé
-         * désactivé (status = false) voit son compte désactivé, il ne peut
-         * plus obtenir de token, même avec le bon mot de passe. Réactiver
-         * l'employé réactive symétriquement son compte.
-         *
-         * Ne fait rien si l'employé n'a pas de compte lié (user_id null) —
-         * rien à synchroniser dans ce cas.
-         */
+        // Synchronisation de l'état de l'utilisateur avec le statut de l'employé
         static::updating(function (Employe $employee) {
             if ($employee->isDirty('status') && $employee->user_id) {
-                (new KeycloakAdminService())->setUserEnabled(
-                    $employee->user_id,
-                    (bool) $employee->status
-                );
+                try {
+                    (new AuthApiService())->setUserEnabled(
+                        $employee->user_id,
+                        (bool) $employee->status
+                    );
+                } catch (\Throwable $e) {
+                    // Ne pas bloquer la mise à jour si l'API d'authentification est indisponible
+                }
             }
         });
 
+        // Suppression de l'utilisateur dans l'API d'authentification
         static::deleting(function (Employe $employee) {
             if ($employee->user_id) {
-                (new KeycloakAdminService())->deleteUser($employee->user_id);
+                try {
+                    (new AuthApiService())->deleteUser($employee->user_id);
+                } catch (\Throwable $e) {
+                    // Ne pas bloquer la suppression si l'API d'authentification est indisponible
+                }
             }
         });
-
     }
 
 }

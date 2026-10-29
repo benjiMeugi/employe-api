@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Repository\Repository;
 use App\Models\OngoingAbsence;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Expose la vue des absences en cours : où en est-on dans une absence
@@ -72,7 +71,13 @@ class OngoingAbsenceController extends Controller
      */
     public function current(Request $request)
     {
-        $userId = json_decode(Auth::token())->sub ?? null;
+        $authUser = $request->input('auth_user');
+
+        if (is_object($authUser)) {
+            $authUser = (array) $authUser;
+        }
+
+        $userId = $authUser['id'] ?? $authUser['sub'] ?? $authUser['user_id'] ?? null;
 
         $employee = \App\Models\Employe::where('user_id', $userId)->first();
 

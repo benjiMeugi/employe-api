@@ -1,0 +1,352 @@
+// ============================================================================
+// Schéma DBML compatible DrawDB (https://www.drawdb.app) & dbdiagram.io
+// Emplacement : database/employe-api.dbml
+// Note : Les tables techniques Laravel (cache, jobs, migrations) et users
+//        (gérée par authentication-api) sont volontairement exclues.
+// ============================================================================
+
+// ============================================================================
+// 1. RÉFÉRENTIELS RH & EMPLOYÉS
+// ============================================================================
+
+Table titles [headercolor: #175e7a, note: 'Civilités / Titres (M., Mme, Dr, etc.)'] {
+  id bigint [pk, increment, not null]
+  label varchar(255) [unique, not null]
+  code varchar(255) [unique, not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table classifications [headercolor: #175e7a, note: 'Grille de classifications professionnelles (hiérarchique)'] {
+  id bigint [pk, increment, not null]
+  label varchar(255) [unique, not null]
+  code varchar(255) [unique, not null]
+  order integer [null]
+  parent_id bigint [null, note: 'Auto-référence vers la classification parente']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table positions [headercolor: #175e7a, note: 'Postes de travail'] {
+  id bigint [pk, increment, not null]
+  label varchar(255) [unique, not null]
+  code varchar(255) [unique, not null]
+  description text [null]
+  planned_headcount integer [null, note: 'Effectif cible prévu sur ce poste']
+  classification_id bigint [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table units [headercolor: #175e7a, note: 'Unités organisationnelles (Directions, Départements, Services)'] {
+  id bigint [pk, increment, not null]
+  code varchar(255) [not null]
+  label varchar(255) [not null]
+  parent_id bigint [null, note: 'Unité parente (organigramme)']
+  is_active boolean [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table employes [headercolor: #175e7a, note: 'Dossiers des employés'] {
+  id bigint [pk, increment, not null]
+  user_id char(36) [unique, null, note: 'ID externe de l utilisateur dans authentication-api']
+  registration_number varchar(255) [unique, not null, note: 'Matricule unique']
+  first_name varchar(255) [not null]
+  last_name varchar(255) [not null]
+  birth_date date [not null]
+  gender varchar(1) [not null, note: 'M ou F']
+  hire_date date [not null]
+  status boolean [not null, note: 'Actif (true) / Inactif (false)']
+  professional_email varchar(255) [unique, null]
+  personal_email varchar(255) [unique, null]
+  phone_number1 varchar(255) [null]
+  phone_number2 varchar(255) [null]
+  title_id bigint [not null]
+  classification_id bigint [null]
+  position_id bigint [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// ============================================================================
+// 2. ÉVÉNEMENTS DE CARRIÈRE (Héritage 1-to-1 via career_events.id)
+// ============================================================================
+
+Table career_events [headercolor: #6366f1, note: 'Table mère des événements de carrière (assignment, promotion, sanction, retirement, dismissal, absence)'] {
+  id bigint [pk, increment, not null]
+  employee_id bigint [not null]
+  event_date date [not null]
+  event varchar(50) [not null, note: 'assignment, promotion, sanction, retirement, dismissal, absence']
+  user_id bigint [null, note: 'ID externe de l auteur dans authentication-api']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table assignments [headercolor: #6366f1, note: 'Affectations d un employé à un poste et une unité (hérite de career_events)'] {
+  id bigint [pk, not null, note: 'Clé primaire partagée avec career_events.id']
+  position_id bigint [not null]
+  unit_id bigint [not null]
+  start_date date [not null]
+  end_date date [null]
+  reason varchar(255) [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table promotions [headercolor: #6366f1, note: 'Promotions / changements de poste ou classification (hérite de career_events)'] {
+  id bigint [pk, not null, note: 'Clé primaire partagée avec career_events.id']
+  previous_position_id bigint [null]
+  new_position_id bigint [null]
+  previous_classification_id bigint [null]
+  new_classification_id bigint [null]
+  reason varchar(255) [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table sanctions [headercolor: #6366f1, note: 'Sanctions disciplinaires (hérite de career_events)'] {
+  id bigint [pk, not null, note: 'Clé primaire partagée avec career_events.id']
+  sanction_type varchar(50) [not null, note: 'Warning, Suspension, Demotion']
+  reason varchar(255) [not null]
+  duration_days bigint [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table retirements [headercolor: #6366f1, note: 'Départs à la retraite (hérite de career_events)'] {
+  id bigint [pk, not null, note: 'Clé primaire partagée avec career_events.id']
+  effective_date date [not null]
+  reason varchar(255) [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table dismissals [headercolor: #6366f1, note: 'Licenciements (hérite de career_events)'] {
+  id bigint [pk, not null, note: 'Clé primaire partagée avec career_events.id']
+  reason varchar(255) [not null]
+  effective_date date [not null]
+  severance_pay double [null, note: 'Indemnité de licenciement']
+  notice_days bigint [null, note: 'Jours de préavis']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// ============================================================================
+// 3. CONGÉS, ABSENCES, JOURS FÉRIÉS & PIÈCES JOINTES
+// ============================================================================
+
+Table absence_types [headercolor: #0d9488, note: 'Types de congés et permissions (Congé annuel, Maternité, Maladie, etc.)'] {
+  id bigint [pk, increment, not null]
+  code varchar(255) [unique, not null]
+  label varchar(255) [not null]
+  is_paid boolean [not null, default: true]
+  is_calendar_based boolean [not null, default: false, note: 'true: jours calendaires, false: jours ouvrés']
+  duration_unit varchar(20) [not null, default: 'day', note: 'day, hour']
+  gender_restriction varchar(10) [not null, default: 'none', note: 'none, M, F']
+  quota_days decimal(6,2) [not null, default: 0]
+  quota_basis varchar(30) [not null, default: 'per_period', note: 'per_period, per_occurrence']
+  accrual_rate_per_month decimal(5,2) [not null, default: 0, note: 'Acquisition mensuelle (ex: 2.5 j/mois)']
+  expiration_delay_months integer [null]
+  expiration_mode varchar(30) [null]
+  requires_supporting_document boolean [not null, default: false]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table leave_grants [headercolor: #0d9488, note: 'Octrois / acquisitions de droits à congés'] {
+  id bigint [pk, increment, not null]
+  employee_id bigint [not null]
+  absence_type_id bigint [not null]
+  period varchar(255) [not null]
+  granted_days decimal(6,2) [not null]
+  grant_date date [not null]
+  expiration_date date [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  indexes {
+    (employee_id, absence_type_id, period) [unique, name: 'leave_grants_emp_type_period_unique']
+  }
+}
+
+Table absence_requests [headercolor: #0d9488, note: 'Demandes de congés / permissions soumises par les employés'] {
+  id bigint [pk, increment, not null]
+  employee_id bigint [not null]
+  approver_id bigint [null, note: 'Employé ayant approuvé ou rejeté la demande']
+  absence_type_id bigint [not null]
+  requested_start_date date [not null]
+  requested_days integer [null]
+  requested_hours integer [null]
+  requested_end_date date [not null]
+  reason varchar(255) [not null]
+  status varchar(30) [not null, default: 'pending', note: 'pending, approved, rejected, cancelled']
+  decision_datetime datetime [null]
+  decision_comment varchar(255) [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table absences [headercolor: #0d9488, note: 'Absences effectives (hérite de career_events)'] {
+  id bigint [pk, not null, note: 'Clé primaire partagée avec career_events.id']
+  absence_type_id bigint [not null]
+  absence_request_id bigint [null]
+  start_date date [not null]
+  end_date date [not null]
+  duration_days integer [null]
+  duration_hours integer [null]
+  excess_is_deductible boolean [not null, default: false]
+  deducted_days decimal(6,2) [not null, default: 0]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table attachments [headercolor: #0d9488, note: 'Pièces jointes polymorphes (liées à Absence ou AbsenceRequest)'] {
+  id bigint [pk, increment, not null]
+  file_reference varchar(255) [not null]
+  document_type varchar(255) [null]
+  attachable_type varchar(255) [not null, note: 'Polymorphe: App\\Models\\Absence ou App\\Models\\AbsenceRequest']
+  attachable_id bigint [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  indexes {
+    (attachable_type, attachable_id) [name: 'attachments_attachable_index']
+  }
+}
+
+Table holidays [headercolor: #0d9488, note: 'Jours fériés'] {
+  id bigint [pk, increment, not null]
+  country_code varchar(2) [not null, default: 'TG']
+  label varchar(255) [not null]
+  date date [not null]
+  is_recurring boolean [not null, default: false]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  indexes {
+    (country_code, date) [unique, name: 'holidays_country_date_unique']
+    date [name: 'holidays_date_index']
+  }
+}
+
+// ============================================================================
+// 4. CONTRATS & PAIE
+// ============================================================================
+
+Table contract_types [headercolor: #d97706, note: 'Types de contrat (CDI, CDD, STAGE, etc.)'] {
+  id bigint [pk, increment, not null]
+  code varchar(255) [unique, not null]
+  label varchar(255) [not null]
+  is_fixed_term boolean [not null, default: false]
+  max_duration_months integer [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table contracts [headercolor: #d97706, note: 'Contrats de travail des employés'] {
+  id bigint [pk, increment, not null]
+  employee_id bigint [not null]
+  contract_type_id bigint [not null]
+  start_date date [not null]
+  end_date date [null]
+  pay_frequency varchar(255) [not null, default: 'Monthly']
+  base_salary decimal(15,2) [not null]
+  status varchar(30) [not null, default: 'Active', note: 'Active, Suspended, Terminated']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table payroll_line_types [headercolor: #d97706, note: 'Rubriques de paie (Gains / Retenues)'] {
+  id bigint [pk, increment, not null]
+  code varchar(255) [unique, not null]
+  label varchar(255) [not null]
+  nature varchar(20) [not null, note: 'Earning, Deduction']
+  calculation_mode varchar(20) [not null, note: 'Rate, FixedAmount, Formula']
+  is_taxable boolean [not null, default: false]
+  is_subject_to_contributions boolean [not null, default: false]
+  is_employer_contribution boolean [not null, default: false]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table classification_payroll_line_type [headercolor: #d97706, note: 'Table pivot associant des valeurs de rubriques de paie aux classifications'] {
+  classification_id bigint [not null]
+  payroll_line_type_id bigint [not null]
+  value decimal(15,2) [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+
+  indexes {
+    (classification_id, payroll_line_type_id) [pk, name: 'class_payroll_unique']
+  }
+}
+
+Table payslips [headercolor: #d97706, note: 'Bulletins de paie'] {
+  id bigint [pk, increment, not null]
+  employee_id bigint [not null]
+  contract_id bigint [not null]
+  period varchar(7) [not null, note: 'Format: YYYY-MM']
+  issue_date date [null]
+  gross_salary decimal(15,2) [not null, default: 0]
+  total_earnings decimal(15,2) [not null, default: 0]
+  total_deductions decimal(15,2) [not null, default: 0]
+  net_pay decimal(15,2) [not null, default: 0]
+  status varchar(20) [not null, default: 'Pending', note: 'Pending, Validated, Paid']
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table payslip_lines [headercolor: #d97706, note: 'Lignes de détail d un bulletin de paie'] {
+  id bigint [pk, increment, not null]
+  payslip_id bigint [not null]
+  payroll_line_type_id bigint [not null]
+  calculation_base decimal(15,2) [null]
+  rate decimal(5,2) [null]
+  amount decimal(15,2) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+// ============================================================================
+// RELATIONS (Clés étrangères)
+// ============================================================================
+
+Ref fk_classifications_parent: classifications.parent_id > classifications.id
+Ref fk_positions_classification: positions.classification_id > classifications.id
+Ref fk_units_parent: units.parent_id > units.id
+Ref fk_employes_title: employes.title_id > titles.id
+Ref fk_employes_classification: employes.classification_id > classifications.id
+Ref fk_employes_position: employes.position_id > positions.id
+
+Ref fk_career_events_employee: career_events.employee_id > employes.id [delete: cascade]
+Ref fk_assignments_career_event: assignments.id - career_events.id [delete: cascade]
+Ref fk_assignments_position: assignments.position_id > positions.id [delete: restrict]
+Ref fk_assignments_unit: assignments.unit_id > units.id [delete: restrict]
+Ref fk_promotions_career_event: promotions.id - career_events.id [delete: cascade]
+Ref fk_promotions_prev_position: promotions.previous_position_id > positions.id [delete: set null]
+Ref fk_promotions_new_position: promotions.new_position_id > positions.id [delete: set null]
+Ref fk_promotions_prev_class: promotions.previous_classification_id > classifications.id [delete: set null]
+Ref fk_promotions_new_class: promotions.new_classification_id > classifications.id [delete: set null]
+Ref fk_sanctions_career_event: sanctions.id - career_events.id [delete: cascade]
+Ref fk_retirements_career_event: retirements.id - career_events.id [delete: cascade]
+Ref fk_dismissals_career_event: dismissals.id - career_events.id [delete: cascade]
+
+Ref fk_leave_grants_employee: leave_grants.employee_id > employes.id [delete: cascade]
+Ref fk_leave_grants_absence_type: leave_grants.absence_type_id > absence_types.id [delete: restrict]
+Ref fk_absence_requests_employee: absence_requests.employee_id > employes.id [delete: cascade]
+Ref fk_absence_requests_approver: absence_requests.approver_id > employes.id [delete: set null]
+Ref fk_absence_requests_type: absence_requests.absence_type_id > absence_types.id [delete: restrict]
+Ref fk_absences_career_event: absences.id - career_events.id [delete: cascade]
+Ref fk_absences_type: absences.absence_type_id > absence_types.id [delete: restrict]
+Ref fk_absences_request: absences.absence_request_id > absence_requests.id [delete: set null]
+
+Ref fk_contracts_employee: contracts.employee_id > employes.id [delete: cascade]
+Ref fk_contracts_type: contracts.contract_type_id > contract_types.id [delete: restrict]
+Ref fk_class_payroll_classification: classification_payroll_line_type.classification_id > classifications.id [delete: cascade]
+Ref fk_class_payroll_line_type: classification_payroll_line_type.payroll_line_type_id > payroll_line_types.id [delete: cascade]
+Ref fk_payslips_employee: payslips.employee_id > employes.id [delete: cascade]
+Ref fk_payslips_contract: payslips.contract_id > contracts.id [delete: cascade]
+Ref fk_payslip_lines_payslip: payslip_lines.payslip_id > payslips.id [delete: cascade]
+Ref fk_payslip_lines_type: payslip_lines.payroll_line_type_id > payroll_line_types.id
+

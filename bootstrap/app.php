@@ -1,50 +1,130 @@
 <?php
 
-use App\Http\Middleware\EnsureSuperAdmin;
+use App\Http\Middleware\CheckAbility;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Routing\Exception\RouteNotFoundException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        api: __DIR__.'/../routes/api.php',
-        commands: __DIR__.'/../routes/console.php',
+        web: __DIR__ . '/../routes/web.php',
+        api: __DIR__ . '/../routes/api.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'super-admin' => EnsureSuperAdmin::class,
+            'ability' => CheckAbility::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->render(function (\Exception $e, Request $request) {
-        if ($request->is('api/*')) {
-            Log::error("Api error: " . $e->getMessage() . " " . $e->getFile() . ":" . $e->getLine());
+        // Intercepte et formate toutes les erreurs de l'API au format JSON uniformisé
+        $exceptions->render(function (Throwable $e, Request $request) {
+            // S'applique uniquement aux routes de l'API ou aux requêtes exigeant du JSON
+            if ($request->is('api/*') || $request->expectsJson()) {
+                try {
+                    Log::error("Api error: " . $e->getMessage() . " " . $e->getFile() . ":" . $e->getLine());
+                } catch (\Throwable $logException) {
+                    // Ignorer les erreurs de logging
+                }
 
-            $status = match (true) {
-                $e instanceof ModelNotFoundException,
-                $e instanceof NotFoundHttpException => 404,
-                $e instanceof MethodNotAllowedHttpException => 405,
-                default => 500,
-            };
+                // 1. Route [login] non définie
+                if ($e instanceof RouteNotFoundException && str_contains($e->getMessage(), 'login')) {
+                    return response()->json([
+                        'success' => false,
+                        'code' => 401,
+                        'message' => 'Non authentifié.',
+                        'body' => [
+                            'error_message' => 'Route [login] not defined or token missing.',
+                            'errors' => null,
+                            'response_data' => null,
+                        ],
+                    ], 401);
+                }
 
-            return response()->json([
-                'success' => false,
-                'code' => $status,
-                'body' => [
-                    'error_message' => app()->isProduction() && $status === 500
-                        ? 'Une erreur est survenue'
-                        : $e->getMessage(),
-                    'errors' => null,
-                    'response_data' => null,
-                ],
-            ], $status);
-        }
-    });
+                // 2. Non authentifié
+                if ($e instanceof AuthenticationException) {
+                    return response()->json([
+                        'success' => false,
+                        'code' => 401,
+                        'message' => 'Non authentifié. Veuillez fournir un token valide.',
+                        'body' => [
+                            'error_message' => $e->getMessage(),
+                            'errors' => null,
+                            'response_data' => null,
+                        ],
+                    ], 401);
+                }
+
+                // 3. Non autorisé
+                if ($e instanceof AuthorizationException || $e instanceof AccessDeniedHttpException) {
+                    return response()->json([
+                        'success' => false,
+                        'code' => 403,
+                        'message' => "Action non autorisée. Vous n'avez pas la permission requise.",
+                        'body' => [
+                            'error_message' => $e->getMessage(),
+                            'errors' => null,
+                            'response_data' => null,
+                        ],
+                    ], 403);
+                }
+
+                // 4. Ressource introuvable
+                if ($e instanceof ModelNotFoundException || $e instanceof NotFoundHttpException) {
+                    return response()->json([
+                        'success' => false,
+                        'code' => 404,
+                        'message' => 'Ressource introuvable.',
+                        'body' => [
+                            'error_message' => $e->getMessage(),
+                            'errors' => null,
+                            'response_data' => null,
+                        ],
+                    ], 404);
+                }
+
+                // 5. Méthode non autorisée
+                if ($e instanceof MethodNotAllowedHttpException) {
+                    return response()->json([
+                        'success' => false,
+                        'code' => 405,
+                        'message' => 'Méthode non autorisée.',
+                        'body' => [
+                            'error_message' => $e->getMessage(),
+                            'errors' => null,
+                            'response_data' => null,
+                        ],
+                    ], 405);
+                }
+
+                // 6. Erreur interne du serveur
+                $debug = false;
+                try {
+                    $debug = config('app.debug');
+                } catch (\Throwable $configException) {
+                    $debug = false;
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'code' => 500,
+                    'message' => 'Erreur interne du serveur.',
+                    'body' => [
+                        'error_message' => $debug ? $e->getMessage() : 'Une erreur est survenue.',
+                        'errors' => null,
+                        'response_data' => null,
+                    ],
+                ], 500);
+            }
+        });
     })->create();

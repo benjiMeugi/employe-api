@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\AbilityController;
 use App\Http\Controllers\AbsenceController;
 use App\Http\Controllers\AbsenceRequestController;
 use App\Http\Controllers\AbsenceTypeController;
@@ -22,280 +21,118 @@ use App\Http\Controllers\PayslipController;
 use App\Http\Controllers\PayslipLineController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\PromotionController;
-use \App\Http\Controllers\RetirementController;
-use App\Http\Controllers\RoleController;
+use App\Http\Controllers\RetirementController;
 use App\Http\Controllers\SanctionController;
 use App\Http\Controllers\TitleController;
+use App\Http\Controllers\UnitAbsenceScheduleController;
 use App\Http\Controllers\UnitController;
+use App\Http\Middleware\VerifyAuthApiToken;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /**
- * Génère le nom d'habileté attendu par Gate::before() (ex: "employe-list"),
- * préfixé par "can:" pour que Laravel sache qu'il s'agit d'une
- * vérification d'autorisation, pas un simple alias de middleware.
+ * Génère le nom d'habileté attendu par CheckAbility (ex: "employe-list"),
+ * préfixé par "can:" pour que le middleware CheckAbility vérifie bien
+ * la permission correspondante.
  */
-function resolveAbility(string $start_ability, string $end_ability)
+function resolveAbility(string $abilityName, string $action)
 {
-    return 'can:' .$start_ability . '-' . $end_ability;
+    return 'ability:' . $abilityName . '-' . $action;
 }
 
-Route::middleware('auth:api')->group(function () {
+// Helper pour enregistrer rapidement les 5 routes standard d'un CRUD API
+function registerApiCrud(string $prefix, string $controller)
+{
+    Route::prefix($prefix)->group(function () use ($controller, $prefix) {
+        $abilityName = $prefix;
 
-    Route::prefix('title')->group(function () {
-        $controller = TitleController::class;
-        $startAbility = 'title';
-        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+        Route::get('/', [$controller, 'index'])->middleware(resolveAbility($abilityName, 'list'));
+        Route::get('/{id}', [$controller, 'show'])->middleware(resolveAbility($abilityName, 'show'));
+        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($abilityName, 'create'));
+        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($abilityName, 'update'));
+        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($abilityName, 'delete'));
     });
+}
 
-    Route::prefix('position')->group(function () {
-        $controller = PositionController::class;
-        $startAbility = 'position';
-        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
-    });
+Route::middleware([VerifyAuthApiToken::class])->group(function () {
 
-    Route::prefix('classification')->group(function () {
-        $controller = ClassificationController::class;
-        $startAbility = 'classification';
-        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
-    });
+    // CRUDs standards factorisés via registerApiCrud
+    registerApiCrud('title', TitleController::class);
+    registerApiCrud('position', PositionController::class);
+    registerApiCrud('classification', ClassificationController::class);
+    registerApiCrud('employe', EmployeController::class);
+    registerApiCrud('retirement', RetirementController::class);
+    registerApiCrud('dismissal', DismissalController::class);
+    registerApiCrud('sanction', SanctionController::class);
+    registerApiCrud('assignment', AssignmentController::class);
+    registerApiCrud('unit', UnitController::class);
+    registerApiCrud('promotion', PromotionController::class);
+    registerApiCrud('absence_type', AbsenceTypeController::class);
+    registerApiCrud('leave_grant', LeaveGrantController::class);
+    registerApiCrud('absence_request', AbsenceRequestController::class);
+    registerApiCrud('absence', AbsenceController::class);
+    registerApiCrud('holiday', HolidayController::class);
+    registerApiCrud('contracttype', ContractTypeController::class);
+    registerApiCrud('contract', ContractController::class);
+    registerApiCrud('payslip', PayslipController::class);
+    registerApiCrud('payslipLine', PayslipLineController::class);
+    registerApiCrud('payrollLineType', PayrollLineTypeController::class);
 
-    Route::prefix('employe')->group(function () {
-        $controller = EmployeController::class;
-        $startAbility = 'employe';
-        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
-    });
-
+    // Cas spécifique : career_event (pas de store/update)
     Route::prefix('career_event')->group(function () {
         $controller = CareerEventController::class;
         $startAbility = 'career_event';
-        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+        Route::get('/', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+        Route::get('/{id}', [$controller, 'show'])->middleware(resolveAbility($startAbility, 'show'));
         Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
     });
 
-    Route::prefix('retirement')->group(function () {
-        $controller = RetirementController::class;
-        $startAbility = 'retirement';
-        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
-    });
-
-    Route::prefix('dismissal')->group(function () {
-        $controller = DismissalController::class;
-        $startAbility = 'dismissal';
-        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
-    });
-
-    Route::prefix('sanction')->group(function () {
-        $controller = SanctionController::class;
-        $startAbility = 'sanction';
-        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
-    });
-
-    Route::prefix('assignment')->group(function () {
-        $controller = AssignmentController::class;
-        $startAbility = 'assignment';
-        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
-    });
-
-    Route::prefix('unit')->group(function () {
-        $controller = UnitController::class;
-        $startAbility = 'unit';
-        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
-    });
-
-    Route::prefix('promotion')->group(function () {
-        $controller = PromotionController::class;
-        $startAbility = 'promotion';
-        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
-    });
-
-    Route::prefix('absence_type')->group(function () {
-        $controller = AbsenceTypeController::class;
-        $startAbility = 'absence_type';
-        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
-    });
-
-    Route::prefix('leave_grant')->group(function () {
-        $controller = LeaveGrantController::class;
-        $startAbility = 'leave_grant';
-        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
-    });
-
-    Route::prefix('absence_request')->group(function () {
-        $controller = AbsenceRequestController::class;
-        $startAbility = 'absence_request';
-        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
-    });
-
-    Route::prefix('absence')->group(function () {
-        $controller = AbsenceController::class;
-        $startAbility = 'absence';
-        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
-    });
-
+    // Pièces jointes
     Route::prefix('attachment')->group(function () {
         $controller = AttachmentController::class;
         $startAbility = 'attachment';
-        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-        Route::get('/{id}/download', [$controller, 'download']);
-        Route::post('/absence/{id}', [AttachmentController::class, 'storeForAbsence']);
-        Route::post('/absence_request/{id}', [AttachmentController::class, 'storeForAbsenceRequest']);
+        Route::get('/', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+        Route::get('/{id}', [$controller, 'show'])->middleware(resolveAbility($startAbility, 'show'));
         Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
         Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+        Route::get('/{id}/download', [$controller, 'download'])->middleware(resolveAbility($startAbility, 'download'));
+        Route::post('/absence/{id}', [AttachmentController::class, 'storeForAbsence'])->middleware(resolveAbility($startAbility, 'create'));
+        Route::post('/absence_request/{id}', [AttachmentController::class, 'storeForAbsenceRequest'])->middleware(resolveAbility($startAbility, 'create'));
     });
 
-// ---------- Gestion des rôles/habiletés elle-même ----------
-// Volontairement en simple auth:api + super-admin (pas de resolveAbility) :
-// on évite de conditionner "qui peut gérer les permissions" par les
-// permissions elles-mêmes, pour ne pas risquer de s'auto-verrouiller.
+    // Gestion des rôles/habiletés gérée totalement par l'API d'authentification
 
-    Route::prefix('role')->group(function () {
-        $controller = RoleController::class;
-        Route::get('/{id?}', [$controller, 'index'])->middleware('super-admin');
-        Route::post('/', [$controller, 'store'])->middleware('super-admin');
-        Route::put('/{id}', [$controller, 'update'])->middleware('super-admin');
-        Route::delete('/{id}', [$controller, 'delete'])->middleware('super-admin');
-
-        Route::put('/{id}/abilities', [$controller, 'syncAbilities'])->middleware('super-admin');
-        Route::post('/{id}/abilities', [$controller, 'addAbility'])->middleware('super-admin');
-        Route::delete('/{id}/abilities', [$controller, 'removeAbility'])->middleware('super-admin');
-    });
-
-    Route::prefix('holiday')->group(function () {
-        $controller = HolidayController::class;
-        $startAbility = 'holiday';
-        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
-    });
-
-    Route::prefix('ability')->group(function () {
-        $controller = AbilityController::class;
-        Route::get('/{id?}', [$controller, 'index'])->middleware('super-admin');
-        Route::post('/', [$controller, 'store'])->middleware('super-admin');
-        Route::put('/{id}', [$controller, 'update'])->middleware('super-admin');
-        Route::delete('/{id}', [$controller, 'delete'])->middleware('super-admin');
-    });
-
+    // Solde de congés
     Route::prefix('leave_balance')->group(function () {
         $controller = LeaveBalanceController::class;
         $startAbility = 'leave_balance';
 
-        // Consulter SON PROPRE solde : aucune permission particulière,
-        // n'importe quel employé connecté y a droit.
         Route::get('/current', [$controller, 'current'])->middleware(resolveAbility($startAbility, 'current'));
-
-        // Consulter le solde des autres : réservé, via les habiletés.
-        Route::get('/', [$controller, 'index'])
-            ->middleware(resolveAbility($startAbility, 'list'));
-        Route::get('/employee/{employeeId}', [$controller, 'forEmployee'])
-            ->middleware(resolveAbility($startAbility, 'list'));
+        Route::get('/', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+        Route::get('/employee/{employeeId}', [$controller, 'forEmployee'])->middleware(resolveAbility($startAbility, 'list'));
     });
 
+    // Absence en cours
     Route::prefix('ongoing_absence')->group(function () {
         $controller = OngoingAbsenceController::class;
         $startAbility = 'ongoing_absence';
 
-        // Sa propre absence en cours : ouvert à tout employé connecté.
-        Route::get('/current', [$controller, 'current'])->middleware('current');
-
-        Route::get('/', [$controller, 'index'])
-            ->middleware(resolveAbility($startAbility, 'list'));
-        Route::get('/employee/{employeeId}', [$controller, 'forEmployee'])
-            ->middleware(resolveAbility($startAbility, 'list'));
+        Route::get('/current', [$controller, 'current'])->middleware(resolveAbility($startAbility, 'current'));
+        Route::get('/', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+        Route::get('/employee/{employeeId}', [$controller, 'forEmployee'])->middleware(resolveAbility($startAbility, 'list'));
     });
 
-    Route::prefix('contracttype')->group(function () {
-        $controller = ContractTypeController::class;
-        $startAbility = 'contracttype';
-        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+    // Planning d'absence par unité
+    Route::prefix('unit_absence_schedule')->group(function () {
+        $controller = UnitAbsenceScheduleController::class;
+        $startAbility = 'unit_absence_schedule';
+
+        Route::get('/', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+        Route::get('/staffing', [$controller, 'staffing'])->middleware(resolveAbility($startAbility, 'list'));
+        Route::get('/unit/{unitId}', [$controller, 'forUnit'])->middleware(resolveAbility($startAbility, 'list'));
+        Route::get('/unit/{unitId}/coverage', [$controller, 'coverage'])->middleware(resolveAbility($startAbility, 'coverage'));
     });
 
-    Route::prefix('contract')->group(function () {
-        $controller = ContractController::class;
-        $startAbility = 'contract';
-        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
-    });
-
-    Route::prefix('payslip')->group(function () {
-        $controller = PayslipController::class;
-        $startAbility = 'payslip';
-        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
-    });
-
-    Route::prefix('payslipLine')->group(function () {
-        $controller = PayslipLineController::class;
-        $startAbility = 'payslipLine';
-        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
-    });
-
-    Route::prefix('payrollLineType')->group(function () {
-        $controller = PayrollLineTypeController::class;
-        $startAbility = 'payrollLineType';
-        Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
-    });
-
-// Volontairement en simple auth:api, sans resolveAbility — n'importe
-// quel utilisateur connecté doit pouvoir consulter SES PROPRES droits,
-// ça n'a pas besoin d'une permission séparée.
+    // Permissions de l'utilisateur connecté
     Route::get('/permissions', [PermissionController::class, 'show']);
-
 });
