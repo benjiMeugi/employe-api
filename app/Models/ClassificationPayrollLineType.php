@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\Pivot;
+use BenjiMeugi\Contracts\IModel;
+use Illuminate\Database\Eloquent\Model;
+
 
 class ClassificationPayrollLineType extends Pivot 
 {

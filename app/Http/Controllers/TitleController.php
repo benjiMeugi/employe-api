@@ -29,12 +29,8 @@ class TitleController extends Controller
      * 
      * @param Request $request
      */
-    public function index(Request $request, $id = null)
+    public function index(Request $request)
     {
-        if ($id !== null) {
-            return $this->show($request, $id);
-        }
-
         $query = $this->repository->parse_filters($request);
 
         // return response
@@ -93,6 +89,6 @@ class TitleController extends Controller
      */
     public function delete(Request $request, $id)
     {
-        return $this->respondOk($this->repository->delete($request, $id));
+        return $this->repository->delete($request, $id);
     }
 }

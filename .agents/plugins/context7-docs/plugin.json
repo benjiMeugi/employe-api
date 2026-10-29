@@ -1,0 +1,12 @@
+{
+  "name": "context7-docs",
+  "displayName": "Context7 Documentation Agent",
+  "version": "1.0.0",
+  "description": "Connecte en permanence un sous-agent à la documentation officielle à jour via MCP Context7 et impose sa consultation automatique avant toute écriture de code.",
+  "suggestedPrompts": [
+    "Vérifie la documentation Laravel 12 via Context7 avant d'implémenter cette fonctionnalité",
+    "Demande à context7-doc-agent la syntaxe recommandée pour ce composant",
+    "Écris le code en suivant strictement la documentation officielle récupérée par Context7"
+  ]
+}
+

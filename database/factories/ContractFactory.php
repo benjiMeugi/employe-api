@@ -13,7 +13,6 @@ class ContractFactory extends Factory
     public function definition(): array
     {
         return [
-            // On lie par défaut à un employé aléatoire existant (sera surchargé dans le seeder)
             'employee_id' => 1, 
             'contract_type_id' => ContractType::factory(),
             'start_date' => $this->faker->date('Y-m-d', 'now'),

@@ -2,29 +2,95 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Repository\Repository;
 use App\Models\AbsenceRequest;
 use Illuminate\Http\Request;
 
 class AbsenceRequestController extends Controller
 {
-    public function index()
+
+    /**
+     * @var AbsenceRequest
+     */
+    private AbsenceRequest $model;
+
+    /**
+     * @var Repository
+     */
+    private Repository $repository;
+
+    public function __construct()
     {
-        return response()->json(AbsenceRequest::all(), 200);
+        $this->model = new AbsenceRequest();
+        $this->repository = new Repository($this->model);
     }
 
+    /**
+     * List resource
+     *
+     * @param Request $request
+     */
+    public function index(Request $request)
+    {
+        $query = $this->repository->parse_filters($request);
+
+        // return response
+        if ($request->has('page') && $request->has('per_page')) {
+            return $this->respondOk($query->paginate($request->input('per_page')));
+        }
+        return $this->respondOk($query->get());
+    }
+
+    /**
+     * List single resource
+     *
+     * @param Request $request
+     * @param int $id
+     */
+    public function show(Request $request, int $id)
+    {
+        return $this->repository->show($request, $id);
+    }
+
+    /**
+     * Store resource
+     *
+     * @param Request $request
+     */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'employee_id' => 'required|exists:employees,id',
-            'absence_type_id' => 'required|exists:absence_types,id',
-            'requested_start_date' => 'required|date',
-            'requested_end_date' => 'required|date|after_or_equal:requested_start_date',
-            'requested_days_count' => 'required|integer|min:1',
-            'reason' => 'nullable|string',
-        ]);
+        $validator = $this->repository->check($request, $this->repository->rules());
+        if (true !== $validator) {
+            return $validator;
+        }
 
-        $validated['status'] = 'Pending';
-        $absenceRequest = AbsenceRequest::create($validated);
-        return response()->json($absenceRequest, 201);
+        return $this->respondOk($this->repository->store($request));
+    }
+
+    /**
+     * Update resource
+     *
+     * @param Request $request
+     * @param int $id
+     */
+    public function update(Request $request, int $id)
+    {
+        $validator = $this->repository->check($request, $this->repository->update_rules(), $id);
+        if (true !== $validator) {
+            return $validator;
+        }
+
+        return $this->respondOk($this->repository->update($request, $id));
+    }
+
+    /**
+     * Delete resource
+     *
+     * @param Request $request
+     * @param int $id
+     */
+    public function delete(Request $request, int $id)
+    {
+        return $this->respondOk($this->repository->delete($request, $id));
     }
 }

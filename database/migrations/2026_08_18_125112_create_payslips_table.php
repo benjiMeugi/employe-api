@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('employee_id')->constrained('employes')->onDelete('cascade');
             $table->foreignId('contract_id')->constrained('contracts')->onDelete('cascade');
             $table->string('period', 7); // Format: YYYY-MM
-            $table->date('issue_date');
+            $table->date('issue_date')->nullable();
             $table->decimal('gross_salary', 15, 2)->default(0);
             $table->decimal('total_earnings', 15, 2)->default(0);
             $table->decimal('total_deductions', 15, 2)->default(0);

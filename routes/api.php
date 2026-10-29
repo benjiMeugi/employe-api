@@ -1,95 +1,138 @@
 <?php
 
+use App\Http\Controllers\AbsenceController;
+use App\Http\Controllers\AbsenceRequestController;
+use App\Http\Controllers\AbsenceTypeController;
+use App\Http\Controllers\AssignmentController;
+use App\Http\Controllers\AttachmentController;
+use App\Http\Controllers\CareerEventController;
+use App\Http\Controllers\ContractController;
+use App\Http\Controllers\ContractTypeController;
 use App\Http\Controllers\ClassificationController;
+use App\Http\Controllers\DismissalController;
 use App\Http\Controllers\EmployeController;
+use App\Http\Controllers\HolidayController;
+use App\Http\Controllers\LeaveBalanceController;
+use App\Http\Controllers\LeaveGrantController;
+use App\Http\Controllers\OngoingAbsenceController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\PayrollLineTypeController;
+use App\Http\Controllers\PayslipController;
+use App\Http\Controllers\PayslipLineController;
 use App\Http\Controllers\PositionController;
+use App\Http\Controllers\PromotionController;
+use App\Http\Controllers\RetirementController;
+use App\Http\Controllers\SanctionController;
 use App\Http\Controllers\TitleController;
+use App\Http\Controllers\UnitAbsenceScheduleController;
+use App\Http\Controllers\UnitController;
+use App\Http\Middleware\VerifyAuthApiToken;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-function resolveAbility(string $start_ability, string $end_ability)
+/**
+ * Génère le nom d'habileté attendu par CheckAbility (ex: "employe-list"),
+ * préfixé par "can:" pour que le middleware CheckAbility vérifie bien
+ * la permission correspondante.
+ */
+function resolveAbility(string $abilityName, string $action)
 {
-    // TODO: Juste pour le dev, à supprimer plus tard qd l'auth sera en place
-    return null;
-    return $start_ability. '-'. $end_ability;
+    return 'ability:' . $abilityName . '-' . $action;
 }
 
-// TODO: Appliquer l'auth middleware sur toutes les routes
-// Route::get('/user', function (Request $request) {
-//     return $request->user();
-// })->middleware('auth:sanctum');
+// Helper pour enregistrer rapidement les 5 routes standard d'un CRUD API
+function registerApiCrud(string $prefix, string $controller)
+{
+    Route::prefix($prefix)->group(function () use ($controller, $prefix) {
+        $abilityName = $prefix;
 
+        Route::get('/', [$controller, 'index'])->middleware(resolveAbility($abilityName, 'list'));
+        Route::get('/{id}', [$controller, 'show'])->middleware(resolveAbility($abilityName, 'show'));
+        Route::post('/', [$controller, 'store'])->middleware(resolveAbility($abilityName, 'create'));
+        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($abilityName, 'update'));
+        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($abilityName, 'delete'));
+    });
+}
 
-Route::prefix('title')->group(function () {
-    $controller = TitleController::class;
-    $startAbility = 'title';
-    Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-    Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-    Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-    Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+Route::middleware([VerifyAuthApiToken::class])->group(function () {
+
+    // CRUDs standards factorisés via registerApiCrud
+    registerApiCrud('title', TitleController::class);
+    registerApiCrud('position', PositionController::class);
+    registerApiCrud('classification', ClassificationController::class);
+    registerApiCrud('employe', EmployeController::class);
+    registerApiCrud('retirement', RetirementController::class);
+    registerApiCrud('dismissal', DismissalController::class);
+    registerApiCrud('sanction', SanctionController::class);
+    registerApiCrud('assignment', AssignmentController::class);
+    registerApiCrud('unit', UnitController::class);
+    registerApiCrud('promotion', PromotionController::class);
+    registerApiCrud('absence_type', AbsenceTypeController::class);
+    registerApiCrud('leave_grant', LeaveGrantController::class);
+    registerApiCrud('absence_request', AbsenceRequestController::class);
+    registerApiCrud('absence', AbsenceController::class);
+    registerApiCrud('holiday', HolidayController::class);
+    registerApiCrud('contracttype', ContractTypeController::class);
+    registerApiCrud('contract', ContractController::class);
+    registerApiCrud('payslip', PayslipController::class);
+    registerApiCrud('payslipLine', PayslipLineController::class);
+    registerApiCrud('payrollLineType', PayrollLineTypeController::class);
+
+    // Cas spécifique : career_event (pas de store/update)
+    Route::prefix('career_event')->group(function () {
+        $controller = CareerEventController::class;
+        $startAbility = 'career_event';
+        Route::get('/', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+        Route::get('/{id}', [$controller, 'show'])->middleware(resolveAbility($startAbility, 'show'));
+        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+    });
+
+    // Pièces jointes
+    Route::prefix('attachment')->group(function () {
+        $controller = AttachmentController::class;
+        $startAbility = 'attachment';
+        Route::get('/', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+        Route::get('/{id}', [$controller, 'show'])->middleware(resolveAbility($startAbility, 'show'));
+        Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
+        Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
+        Route::get('/{id}/download', [$controller, 'download'])->middleware(resolveAbility($startAbility, 'download'));
+        Route::post('/absence/{id}', [AttachmentController::class, 'storeForAbsence'])->middleware(resolveAbility($startAbility, 'create'));
+        Route::post('/absence_request/{id}', [AttachmentController::class, 'storeForAbsenceRequest'])->middleware(resolveAbility($startAbility, 'create'));
+    });
+
+    // Gestion des rôles/habiletés gérée totalement par l'API d'authentification
+
+    // Solde de congés
+    Route::prefix('leave_balance')->group(function () {
+        $controller = LeaveBalanceController::class;
+        $startAbility = 'leave_balance';
+
+        Route::get('/current', [$controller, 'current'])->middleware(resolveAbility($startAbility, 'current'));
+        Route::get('/', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+        Route::get('/employee/{employeeId}', [$controller, 'forEmployee'])->middleware(resolveAbility($startAbility, 'list'));
+    });
+
+    // Absence en cours
+    Route::prefix('ongoing_absence')->group(function () {
+        $controller = OngoingAbsenceController::class;
+        $startAbility = 'ongoing_absence';
+
+        Route::get('/current', [$controller, 'current'])->middleware(resolveAbility($startAbility, 'current'));
+        Route::get('/', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+        Route::get('/employee/{employeeId}', [$controller, 'forEmployee'])->middleware(resolveAbility($startAbility, 'list'));
+    });
+
+    // Planning d'absence par unité
+    Route::prefix('unit_absence_schedule')->group(function () {
+        $controller = UnitAbsenceScheduleController::class;
+        $startAbility = 'unit_absence_schedule';
+
+        Route::get('/', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
+        Route::get('/staffing', [$controller, 'staffing'])->middleware(resolveAbility($startAbility, 'list'));
+        Route::get('/unit/{unitId}', [$controller, 'forUnit'])->middleware(resolveAbility($startAbility, 'list'));
+        Route::get('/unit/{unitId}/coverage', [$controller, 'coverage'])->middleware(resolveAbility($startAbility, 'coverage'));
+    });
+
+    // Permissions de l'utilisateur connecté
+    Route::get('/permissions', [PermissionController::class, 'show']);
 });
-
-Route::prefix('position')->group(function () {
-    $controller = PositionController::class;
-    $startAbility = 'position';
-    Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-    Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-    Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-    Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
-});
-
-Route::prefix('classification')->group(function () {
-    $controller = ClassificationController::class;
-    $startAbility = 'classification';
-    Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-    Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-    Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-    Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
-});
-
-Route::prefix('employe')->group(function () {
-    $controller = EmployeController::class;
-    $startAbility = 'employe';
-    Route::get('/{id?}', [$controller, 'index'])->middleware(resolveAbility($startAbility, 'list'));
-    Route::post('/', [$controller, 'store'])->middleware(resolveAbility($startAbility, 'create'));
-    Route::put('/{id}', [$controller, 'update'])->middleware(resolveAbility($startAbility, 'update'));
-    Route::delete('/{id}', [$controller, 'delete'])->middleware(resolveAbility($startAbility, 'delete'));
-});
-// --- VOS NOUVELLES ROUTES (MODULE GESTION DE LA PAIE) ---
-
-Route::prefix('payroll')->group(function () {
-
-    // --- CONTRATS ---
-    Route::get('/contract-types', [\App\Http\Controllers\ContractTypeController::class, 'index']);
-    Route::post('/contract-types', [\App\Http\Controllers\ContractTypeController::class, 'store']);
-    Route::get('/contract-types/{id}', [\App\Http\Controllers\ContractTypeController::class, 'show']);
-
-    Route::get('/contracts', [\App\Http\Controllers\ContractController::class, 'index']);
-    Route::post('/contracts', [\App\Http\Controllers\ContractController::class, 'store']);
-    Route::get('/contracts/{id}', [\App\Http\Controllers\ContractController::class, 'show']);
-
-    // --- BULLETINS DE PAIE & CALCULS ---
-    Route::get('/payslips', [\App\Http\Controllers\PayslipController::class, 'index']);
-    Route::get('/payslips/{id}', [\App\Http\Controllers\PayslipController::class, 'show']);
-    Route::post('/payslips/generate', [\App\Http\Controllers\PayslipController::class, 'generate']); // La route magique
-    
-    Route::get('/payslip-lines/{id}', [\App\Http\Controllers\PayslipLineController::class, 'show']);
-
-    // --- RUBRIQUES & CONFIGURATIONS ---
-    Route::post('/line-types', [\App\Http\Controllers\PayrollLineTypeController::class, 'store']);
-    Route::get('/line-types', [\App\Http\Controllers\PayrollLineTypeController::class, 'index']);
-    Route::post('/classifications/lines', [\App\Http\Controllers\ClassificationPayrollLineTypeController::class, 'store']);
-
-    // --- ABSENCES & CONGÉS ---
-    Route::get('/absence-types', [\App\Http\Controllers\AbsenceTypeController::class, 'index']);
-    Route::post('/absence-types', [\App\Http\Controllers\AbsenceTypeController::class, 'store']);
-
-    Route::get('/absence-requests', [\App\Http\Controllers\AbsenceRequestController::class, 'index']);
-    Route::post('/absence-requests', [\App\Http\Controllers\AbsenceRequestController::class, 'store']);
-
-    Route::get('/absences', [\App\Http\Controllers\AbsenceController::class, 'index']);
-
-    Route::post('/leave-credits', [\App\Http\Controllers\LeaveCreditController::class, 'store']);
-    Route::get('/leave-balances/employee/{employee_id}', [\App\Http\Controllers\LeaveBalanceController::class, 'show']);
-});
-

@@ -2,55 +2,96 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Repository\Repository;
 use App\Models\Absence;
 use Illuminate\Http\Request;
 
 class AbsenceController extends Controller
 {
+
+
     /**
-     * Liste toutes les absences réelles enregistrées.
+     * @var Absence
      */
-    public function index()
+    private Absence $model;
+
+    /**
+     * @var Repository
+     */
+    private Repository $repository;
+
+    public function __construct()
     {
-        // On récupère les absences en chargeant la relation avec le type d'absence pour avoir plus de détails
-        $absences = Absence::with('absenceType')->get();
-        
-        return response()->json($absences, 200);
+        $this->model = new Absence();
+        $this->repository = new Repository($this->model);
     }
 
     /**
-     * Enregistre manuellement une absence réelle dans la base de données.
+     * List resource
+     *
+     * @param Request $request
+     */
+    public function index(Request $request)
+    {
+        $query = $this->repository->parse_filters($request);
+
+        // return response
+        if ($request->has('page') && $request->has('per_page')) {
+            return $this->respondOk($query->paginate($request->input('per_page')));
+        }
+        return $this->respondOk($query->get());
+    }
+
+    /**
+     * List single resource
+     *
+     * @param Request $request
+     * @param int $id
+     */
+    public function show(Request $request, int $id)
+    {
+        return $this->repository->show($request, $id);
+    }
+
+    /**
+     * Store resource
+     *
+     * @param Request $request
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'absence_type_id' => 'required|exists:absence_types,id',
-            'absence_request_id' => 'nullable|exists:absence_requests,id',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'days_count' => 'required|integer|min:1',
-            'is_deductible' => 'required|boolean',
-        ]);
+        $validator = $this->repository->check($request, $this->repository->rules());
+        if (true !== $validator) {
+            return $validator;
+        }
 
-        $absence = Absence::create($validated);
-
-        return response()->json([
-            'message' => 'Absence réelle enregistrée avec succès.',
-            'data' => $absence->load('absenceType')
-        ], 201);
+        return $this->respondOk($this->repository->store($request));
     }
 
     /**
-     * Affiche les détails d'une absence spécifique.
+     * Update resource
+     *
+     * @param Request $request
+     * @param int $id
      */
-    public function show($id)
+    public function update(Request $request, int $id)
     {
-        $absence = Absence::with(['absenceType', 'absenceRequest'])->find($id);
-
-        if (!$absence) {
-            return response()->json(['message' => 'Absence introuvable.'], 404);
+        $validator = $this->repository->check($request, $this->repository->update_rules(), $id);
+        if (true !== $validator) {
+            return $validator;
         }
 
-        return response()->json($absence, 200);
+        return $this->respondOk($this->repository->update($request, $id));
+    }
+
+    /**
+     * Delete resource
+     *
+     * @param Request $request
+     * @param int $id
+     */
+    public function delete(Request $request, int $id)
+    {
+        return $this->respondOk($this->repository->delete($request, $id));
     }
 }

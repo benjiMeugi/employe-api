@@ -18,7 +18,7 @@ class Repository implements IRepository
     /**
      * @var Model
      */
-    private Model $model;
+    protected Model $model;
 
     /**
      * @param string|null $model
@@ -32,9 +32,11 @@ class Repository implements IRepository
         }
     }
 
+
+
     /**
      * Set new instance of model
-     * 
+     *
      * @param string $model
      */
     public function setModel($model)
@@ -69,21 +71,21 @@ class Repository implements IRepository
 
     /**
      * apply request query filters
-     * 
+     *
      * ordering order=asc/desc by=column
-     * 
-     * where_column 
-     * 
+     *
+     * where_column
+     *
      * whereLike_column / whereLike_relation__column
-     * 
+     *
      * orWhere_column
-     * 
+     *
      * orWhereLike_column
-     * 
+     *
      * with_relation or with_relation1__relation2
-     * 
+     *
      * withCount_relation
-     *  
+     *
      * @param Request $request
      * @return Builder $query
      */
@@ -107,23 +109,23 @@ class Repository implements IRepository
 
     /**
      * Store resource
-     * 
+     *
      * @param Request $request
      */
     public function store($request)
     {
-        return (new Parser())->store($request->all(), $this->model);
+        return (new Parser())->store($this->getRequestInput($request), $this->model);
     }
 
     /**
      * Update resource
-     *  
+     *
      * @param Request $request
      * @param int $id
      */
     public function update($request, $id)
     {
-        return (new Parser())->update($request->all(), $this->model, $id);
+        return (new Parser())->update($this->getRequestInput($request), $this->model, $id);
     }
 
     /**
@@ -143,23 +145,48 @@ class Repository implements IRepository
 
 
     /**
-     * 
+     *
      * @param Request $request
      * @param array $rules
      * @return true|array
      */
     public function check($request, $rules = [], $id = null)
     {
-        $requestInput = is_array($request) ? $request : $request->all();
+        $requestInput = $this->getRequestInput($request);
         $requestInput = is_null($id) ? $requestInput : array_merge($requestInput, [$this->model->getKeyName() => $id]);
 
         $rules = $this->getRules($rules, $id);
+
+        if ($id !== null) {
+            $rules[$this->model->getKeyName()] = [
+                'exists:' . $this->model->getTable() . ',' . $this->model->getKeyName(),
+            ];
+        }
 
         $validator = Validator::make($requestInput, $rules);
         if ($validator->fails()) {
             return $this->respondBadRequest($validator->errors()->messages());
         }
         return true;
+    }
+
+    private function getRequestInput($request): array
+    {
+        if (is_array($request)) {
+            return $request;
+        }
+
+        $input = $request->all();
+        if ($input !== []) {
+            return $input;
+        }
+
+        $requestInput = $request->request->all();
+        if ($requestInput !== []) {
+            return $requestInput;
+        }
+
+        return $_POST !== [] ? $_POST : $request->json()->all();
     }
 
     /**
