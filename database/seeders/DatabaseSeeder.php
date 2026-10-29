@@ -40,8 +40,6 @@ class DatabaseSeeder extends Seeder
             LeaveGrantSeeder::class,
             AbsenceRequestSeeder::class,
             AbsenceSeeder::class,
-
-            RoleAbilitySeeder::class,
         ]);
     }
 }

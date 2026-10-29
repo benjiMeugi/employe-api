@@ -43,8 +43,8 @@ return [
             'provider' => 'users',
         ],
         'api' => [
-        'driver' => 'keycloak',
-        'provider' => 'users',
+            'driver' => 'session',
+            'provider' => 'users',
         ],
     ],
 
@@ -117,5 +117,7 @@ return [
     */
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
+
+    'validate_token_url' => env('AUTH_VALIDATE_TOKEN_URL', 'http://nginx:8081/api/validate-token'),
 
 ];
